@@ -21,6 +21,8 @@
 #include <yarp/dev/IPositionDirect.h>
 #include <yarp/dev/ITorqueControl.h>
 #include <yarp/dev/IVelocityControl.h>
+#include <yarp/dev/IVelocityDirect.h>
+#include <yarp/dev/ReturnValue.h>
 #include <yarp/os/PeriodicThread.h>
 
 namespace yarp
@@ -110,115 +112,115 @@ public:
     /**
      * @brief Gets the number of motor encoders.
      * @param num Pointer to an integer where the number of encoders will be stored.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getNumberOfMotorEncoders(int* num) override;
+    yarp::dev::ReturnValue getNumberOfMotorEncoders(int* num) override;
 
     /**
      * @brief Resets the specified motor encoder to zero.
      * @param m Index of the motor encoder to reset.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool resetMotorEncoder(int m) override;
+    yarp::dev::ReturnValue resetMotorEncoder(int m) override;
 
     /**
      * @brief Resets all motor encoders to zero.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool resetMotorEncoders() override;
+    yarp::dev::ReturnValue resetMotorEncoders() override;
 
     /**
      * @brief Sets the counts per revolution for a specific motor encoder.
      * @param m Index of the motor encoder.
      * @param cpr Counts per revolution value to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setMotorEncoderCountsPerRevolution(int m, const double cpr) override;
+    yarp::dev::ReturnValue setMotorEncoderCountsPerRevolution(int m, const double cpr) override;
 
     /**
      * @brief Gets the counts per revolution for a specific motor encoder.
      * @param m Index of the motor encoder.
      * @param cpr Pointer to store the counts per revolution value.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncoderCountsPerRevolution(int m, double* cpr) override;
+    yarp::dev::ReturnValue getMotorEncoderCountsPerRevolution(int m, double* cpr) override;
 
     /**
      * @brief Sets the value of a specific motor encoder.
      * @param m Index of the motor encoder.
      * @param val Value to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setMotorEncoder(int m, const double val) override;
+    yarp::dev::ReturnValue setMotorEncoder(int m, const double val) override;
 
     /**
      * @brief Sets the values of all motor encoders.
      * @param vals Array of values to set for each encoder.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setMotorEncoders(const double* vals) override;
+    yarp::dev::ReturnValue setMotorEncoders(const double* vals) override;
 
     /**
      * @brief Gets the value of a specific motor encoder.
      * @param m Index of the motor encoder.
      * @param v Pointer to store the encoder value.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncoder(int m, double* v) override;
+    yarp::dev::ReturnValue getMotorEncoder(int m, double* v) override;
 
     /**
      * @brief Gets the values of all motor encoders.
      * @param encs Array to store the encoder values.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncoders(double* encs) override;
+    yarp::dev::ReturnValue getMotorEncoders(double* encs) override;
 
     /**
      * @brief Gets the values and timestamps of all motor encoders.
      * @param encs Array to store the encoder values.
      * @param time Array to store the timestamps.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncodersTimed(double* encs, double* time) override;
+    yarp::dev::ReturnValue getMotorEncodersTimed(double* encs, double* time) override;
 
     /**
      * @brief Gets the value and timestamp of a specific motor encoder.
      * @param m Index of the motor encoder.
      * @param encs Pointer to store the encoder value.
      * @param time Pointer to store the timestamp.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncoderTimed(int m, double* encs, double* time) override;
+    yarp::dev::ReturnValue getMotorEncoderTimed(int m, double* encs, double* time) override;
 
     /**
      * @brief Gets the speed of a specific motor encoder.
      * @param m Index of the motor encoder.
      * @param sp Pointer to store the speed value.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncoderSpeed(int m, double* sp) override;
+    yarp::dev::ReturnValue getMotorEncoderSpeed(int m, double* sp) override;
 
     /**
      * @brief Gets the speeds of all motor encoders.
      * @param spds Array to store the speed values.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncoderSpeeds(double* spds) override;
+    yarp::dev::ReturnValue getMotorEncoderSpeeds(double* spds) override;
 
     /**
      * @brief Gets the acceleration of a specific motor encoder.
      * @param m Index of the motor encoder.
      * @param acc Pointer to store the acceleration value.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncoderAcceleration(int m, double* acc) override;
+    yarp::dev::ReturnValue getMotorEncoderAcceleration(int m, double* acc) override;
 
     /**
      * @brief Gets the accelerations of all motor encoders.
      * @param accs Array to store the acceleration values.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getMotorEncoderAccelerations(double* accs) override;
+    yarp::dev::ReturnValue getMotorEncoderAccelerations(double* accs) override;
 
     // ---------------- IEncoderTimed --------------
 
@@ -226,98 +228,98 @@ public:
      * @brief Gets the values and timestamps of all encoders.
      * @param encs Array to store the encoder values.
      * @param time Array to store the timestamps (in seconds).
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getEncodersTimed(double* encs, double* time) override;
+    yarp::dev::ReturnValue getEncodersTimed(double* encs, double* time) override;
 
     /**
      * @brief Gets the value and timestamp of a specific encoder.
      * @param j Index of the encoder.
      * @param encs Pointer to store the encoder value.
      * @param time Pointer to store the timestamp (in seconds).
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getEncoderTimed(int j, double* encs, double* time) override;
+    yarp::dev::ReturnValue getEncoderTimed(int j, double* encs, double* time) override;
 
     /**
      * @brief Gets the number of axes (encoders).
      * @param ax Pointer to store the number of axes.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getAxes(int* ax) override;
+    yarp::dev::ReturnValue getAxes(int* ax) override;
 
     /**
      * @brief Resets the specified encoder to zero.
      * @param j Index of the encoder to reset.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool resetEncoder(int j) override;
+    yarp::dev::ReturnValue resetEncoder(int j) override;
 
     /**
      * @brief Resets all encoders to zero.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool resetEncoders() override;
+    yarp::dev::ReturnValue resetEncoders() override;
 
     /**
      * @brief Sets the value of a specific encoder.
      * @param j Index of the encoder.
      * @param val Value to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setEncoder(int j, double val) override;
+    yarp::dev::ReturnValue setEncoder(int j, double val) override;
 
     /**
      * @brief Sets the values of all encoders.
      * @param vals Array of values to set for each encoder.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setEncoders(const double* vals) override;
+    yarp::dev::ReturnValue setEncoders(const double* vals) override;
 
     /**
      * @brief Gets the value of a specific encoder.
      * @param j Index of the encoder.
      * @param v Pointer to store the encoder value.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getEncoder(int j, double* v) override;
+    yarp::dev::ReturnValue getEncoder(int j, double* v) override;
 
     /**
      * @brief Gets the values of all encoders.
      * @param encs Array to store the encoder values.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getEncoders(double* encs) override;
+    yarp::dev::ReturnValue getEncoders(double* encs) override;
 
     /**
      * @brief Gets the speed of a specific encoder.
      * @param j Index of the encoder.
      * @param sp Pointer to store the speed value.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getEncoderSpeed(int j, double* sp) override;
+    yarp::dev::ReturnValue getEncoderSpeed(int j, double* sp) override;
 
     /**
      * @brief Gets the speeds of all encoders.
      * @param spds Array to store the speed values.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getEncoderSpeeds(double* spds) override;
+    yarp::dev::ReturnValue getEncoderSpeeds(double* spds) override;
 
     /**
      * @brief Gets the acceleration of a specific encoder.
      * @param j Index of the encoder.
      * @param spds Pointer to store the acceleration value.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getEncoderAcceleration(int j, double* spds) override;
+    yarp::dev::ReturnValue getEncoderAcceleration(int j, double* spds) override;
 
     /**
      * @brief Gets the accelerations of all encoders.
      * @param accs Array to store the acceleration values.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getEncoderAccelerations(double* accs) override;
+    yarp::dev::ReturnValue getEncoderAccelerations(double* accs) override;
 
     // ---------------- IAxisInfo ------------------
 
@@ -325,19 +327,19 @@ public:
      * @brief Gets the name of a specific axis.
      * @param axis Index of the axis.
      * @param name Reference to a string to store the axis name.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getAxisName(int axis, std::string& name) override;
+    yarp::dev::ReturnValue getAxisName(int axis, std::string& name) override;
 
     /**
      * @brief Gets the type of a specific axis.
      * @param axis Index of the axis.
      * @param type Reference to a JointTypeEnum to store the axis type.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      * @note For the time being, this function always returns
      * JointTypeEnum::VOCAB_JOINTTYPE_REVOLUTE.
      */
-    bool getJointType(int axis, yarp::dev::JointTypeEnum& type) override;
+    yarp::dev::ReturnValue getJointType(int axis, yarp::dev::JointTypeEnum& type) override;
 
     // ---------------- IControlMode ----------------
 
@@ -345,122 +347,122 @@ public:
      * @brief Gets the control mode of a specific joint.
      * @param j Index of the joint.
      * @param mode Pointer to store the control mode.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getControlMode(int j, int* mode) override;
+    yarp::dev::ReturnValue getControlMode(int j, int* mode) override;
 
     /**
      * @brief Gets the control modes of all joints.
      * @param modes Array to store the control modes.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getControlModes(int* modes) override;
+    yarp::dev::ReturnValue getControlModes(int* modes) override;
 
     /**
      * @brief Gets the control modes of a subset of joints.
      * @param n Number of joints.
      * @param joints Array of joint indices.
      * @param modes Array to store the control modes.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getControlModes(const int n, const int* joints, int* modes) override;
+    yarp::dev::ReturnValue getControlModes(const int n, const int* joints, int* modes) override;
 
     /**
      * @brief Sets the control mode of a specific joint.
      * @param j Index of the joint.
      * @param mode Control mode to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setControlMode(const int j, const int mode) override;
+    yarp::dev::ReturnValue setControlMode(const int j, const int mode) override;
 
     /**
      * @brief Sets the control modes of a subset of joints.
      * @param n Number of joints.
      * @param joints Array of joint indices.
      * @param modes Array of control modes to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setControlModes(const int n, const int* joints, int* modes) override;
+    yarp::dev::ReturnValue setControlModes(const int n, const int* joints, int* modes) override;
 
     /**
      * @brief Sets the control modes of all joints.
      * @param modes Array of control modes to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setControlModes(int* modes) override;
+    yarp::dev::ReturnValue setControlModes(int* modes) override;
 
     // ---------------- ITorqueControl --------------
 
     /**
      * @brief Gets the reference torques for all joints.
      * @param t Array to store the reference torques.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getRefTorques(double* t) override;
+    yarp::dev::ReturnValue getRefTorques(double* t) override;
 
     /**
      * @brief Gets the reference torque for a specific joint.
      * @param j Index of the joint.
      * @param t Pointer to store the reference torque.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getRefTorque(int j, double* t) override;
+    yarp::dev::ReturnValue getRefTorque(int j, double* t) override;
 
     /**
      * @brief Sets the reference torques for all joints.
      * @param t Array of reference torques to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setRefTorques(const double* t) override;
+    yarp::dev::ReturnValue setRefTorques(const double* t) override;
 
     /**
      * @brief Sets the reference torques for a subset of joints.
      * @param n_joint Number of joints.
      * @param joints Array of joint indices.
      * @param t Array of reference torques to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setRefTorques(const int n_joint, const int* joints, const double* t) override;
+    yarp::dev::ReturnValue setRefTorques(const int n_joint, const int* joints, const double* t) override;
 
     /**
      * @brief Sets the reference torque for a specific joint.
      * @param j Index of the joint.
      * @param t Reference torque to set.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setRefTorque(int j, double t) override;
+    yarp::dev::ReturnValue setRefTorque(int j, double t) override;
 
     /**
      * @brief Gets the measured torque for a specific joint.
      * @param j Index of the joint.
      * @param t Pointer to store the measured torque.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getTorque(int j, double* t) override;
+    yarp::dev::ReturnValue getTorque(int j, double* t) override;
 
     /**
      * @brief Gets the measured torques for all joints.
      * @param t Array to store the measured torques.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getTorques(double* t) override;
+    yarp::dev::ReturnValue getTorques(double* t) override;
 
     /**
      * @brief Gets the torque range for a specific joint.
      * @param j Index of the joint.
      * @param min Pointer to store the minimum torque.
      * @param max Pointer to store the maximum torque.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getTorqueRange(int j, double* min, double* max) override;
+    yarp::dev::ReturnValue getTorqueRange(int j, double* min, double* max) override;
 
     /**
      * @brief Gets the torque ranges for all joints.
      * @param min Array to store the minimum torques.
      * @param max Array to store the maximum torques.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getTorqueRanges(double* min, double* max) override;
+    yarp::dev::ReturnValue getTorqueRanges(double* min, double* max) override;
 
     // ---------------- IVelocityControl --------------
 
@@ -474,7 +476,7 @@ public:
      * @note This interface implements Cyclic Synchronous Velocity Mode (CSV), so the command is
      * sent cyclically.
      */
-    bool velocityMove(int j, double sp) override;
+    yarp::dev::ReturnValue velocityMove(int j, double sp) override;
 
     /**
      * @brief Commands velocity moves for all joints.
@@ -485,7 +487,7 @@ public:
      * @note This interface implements Cyclic Synchronous Velocity Mode (CSV), so the command is
      * sent cyclically.
      */
-    bool velocityMove(const double* sp) override;
+    yarp::dev::ReturnValue velocityMove(const double* sp) override;
 
     /**
      * @brief Gets the reference velocity for a specific joint.
@@ -494,7 +496,7 @@ public:
      * @param vel Pointer to store the reference velocity.
      * @return true if successful, false otherwise.
      */
-    bool getRefVelocity(const int joint, double* vel) override;
+    yarp::dev::ReturnValue getTargetVelocity(const int joint, double *vel) override;
 
     /**
      * @brief Gets the reference velocities for all joints.
@@ -502,7 +504,7 @@ public:
      * @param vels Array to store the reference velocities.
      * @return true if successful, false otherwise.
      */
-    bool getRefVelocities(double* vels) override;
+    yarp::dev::ReturnValue getTargetVelocities(double* vels) override;
 
     /**
      * @brief Gets the reference velocity for a subset of joints.
@@ -512,7 +514,31 @@ public:
      * @param vels Array to store the reference velocities.
      * @return true if successful, false otherwise.
      */
-    bool getRefVelocities(const int n_joint, const int* joints, double* vels) override;
+//    yarp::dev::ReturnValue getRefVelocity(const int joint, double* vel) override;
+
+    /**
+     * @brief Gets the reference velocities for all joints.
+     *
+     * @param vels Array to store the reference velocities.
+     * @return true if successful, false otherwise.
+     */
+//    yarp::dev::ReturnValue getRefVelocity(std::vector<double>& vels) override;
+
+    /**
+     * @brief Gets the reference velocities for all joints.
+     *
+     * @param vels Array to store the reference velocities.
+     * @return true if successful, false otherwise.
+     */
+//    yarp::dev::ReturnValue getRefVelocity(const std::vector<int>& jnts, std::vector<double>& vels) override;
+
+    /**
+     * @brief Gets the reference velocities for all joints.
+     *
+     * @param vels Array to store the reference velocities.
+     * @return true if successful, false otherwise.
+     */
+    yarp::dev::ReturnValue getTargetVelocities(const int n_joint, const int* joints, double* vels) override;
 
     /**
      * @brief (Unused in CSV mode) Sets the reference acceleration for a specific joint.
@@ -521,7 +547,7 @@ public:
      * @param acc Reference acceleration (ignored).
      * @return Always returns false. Not used in Cyclic Synchronous Velocity Mode.
      */
-    bool setRefAcceleration(int j, double acc) override;
+    yarp::dev::ReturnValue setTrajAcceleration(int j, double acc) override;
 
     /**
      * @brief (Unused in CSV mode) Sets the reference accelerations for all joints.
@@ -529,7 +555,7 @@ public:
      * @param accs Array of reference accelerations (ignored).
      * @return Always returns false. Not used in Cyclic Synchronous Velocity Mode.
      */
-    bool setRefAccelerations(const double* accs) override;
+    yarp::dev::ReturnValue setTrajAccelerations(const double* accs) override;
 
     /**
      * @brief (Unused in CSV mode) Gets the reference acceleration for a specific joint.
@@ -538,7 +564,7 @@ public:
      * @param acc Pointer to store the reference acceleration (ignored).
      * @return Always returns false. Not used in Cyclic Synchronous Velocity Mode.
      */
-    bool getRefAcceleration(int j, double* acc) override;
+    yarp::dev::ReturnValue getTrajAcceleration(int j, double* acc) override;
 
     /**
      * @brief (Unused in CSV mode) Gets the reference accelerations for all joints.
@@ -546,7 +572,7 @@ public:
      * @param accs Array to store the reference accelerations (ignored).
      * @return Always returns false. Not used in Cyclic Synchronous Velocity Mode.
      */
-    bool getRefAccelerations(double* accs) override;
+    yarp::dev::ReturnValue getTrajAccelerations(double* accs) override;
 
     /**
      * @brief Stops motion for a specific joint.
@@ -556,7 +582,7 @@ public:
      *
      * @note In CSV mode, this typically sets the velocity setpoint to zero for the specified joint.
      */
-    bool stop(int j) override;
+    yarp::dev::ReturnValue stop(int j) override;
 
     /**
      * @brief Stops motion for all joints.
@@ -565,7 +591,7 @@ public:
      *
      * @note In CSV mode, this typically sets all velocity setpoints to zero.
      */
-    bool stop() override;
+    yarp::dev::ReturnValue stop() override;
 
     /**
      * @brief Commands velocity moves for a subset of joints.
@@ -578,7 +604,7 @@ public:
      * @note This interface implements Cyclic Synchronous Velocity Mode (CSV), so the command is
      * sent cyclically.
      */
-    bool velocityMove(const int n_joint, const int* joints, const double* spds) override;
+    yarp::dev::ReturnValue velocityMove(const int n_joint, const int* joints, const double* spds) override;
 
     /**
      * @brief Sets the reference accelerations for a subset of joints.
@@ -592,7 +618,7 @@ public:
      *
      * @return True in case of success, false otherwise.
      */
-    bool setRefAccelerations(const int n_joint, const int* joints, const double* accs) override;
+    yarp::dev::ReturnValue setTrajAccelerations(const int n_joint, const int* joints, const double* accs) override;
 
     /**
      * @brief Gets the reference accelerations for a subset of joints.
@@ -605,7 +631,7 @@ public:
      * and get the reference acceleration (0x6083).
      * @return True in case of success, false otherwise.
      */
-    bool getRefAccelerations(const int n_joint, const int* joints, double* accs) override;
+    yarp::dev::ReturnValue getTrajAccelerations(const int n_joint, const int* joints, double* accs) override;
 
     /**
      * @brief Stops motion for a subset of joints.
@@ -619,7 +645,7 @@ public:
      * @note If the driver is switched to Profile Position Mode (PP), this function call a SDO write
      * and set the "Halt Position" command (0x6040, 0x0006) for each specified joint.
      */
-    bool stop(const int n_joint, const int* joints) override;
+    yarp::dev::ReturnValue stop(const int n_joint, const int* joints) override;
 
     // ---------------- IJointFault ----------------
     /**
@@ -627,9 +653,9 @@ public:
      * @param j Index of the joint.
      * @param fault Reference to an integer to store the fault code.
      * @param message Reference to a string to store the fault message.
-     * @return true if successful, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getLastJointFault(int j, int& fault, std::string& message) override;
+    yarp::dev::ReturnValue getLastJointFault(int j, int& fault, std::string& message) override;
 
     // ---------------- IPositionControl --------------
 
@@ -651,7 +677,7 @@ public:
      * @note The motion is non-blocking. Use checkMotionDone() to verify completion.
      * @note Position units depend on the encoder configuration and gear ratios.
      */
-    bool positionMove(int j, double ref) override;
+    yarp::dev::ReturnValue positionMove(int j, double ref) override;
 
     /**
      * @brief Commands absolute position moves for all joints simultaneously.
@@ -667,7 +693,7 @@ public:
      * @note Array size must match the number of configured axes.
      * @note Use checkMotionDone() to verify when all motions are complete.
      */
-    bool positionMove(const double* refs) override;
+    yarp::dev::ReturnValue positionMove(const double* refs) override;
 
     /**
      * @brief Commands absolute position moves for a subset of joints.
@@ -685,7 +711,7 @@ public:
      * @note Non-specified joints remain in their current control state.
      * @note Joint indices must be valid (0 to num_axes-1).
      */
-    bool positionMove(const int n_joint, const int* joints, const double* refs) override;
+    yarp::dev::ReturnValue positionMove(const int n_joint, const int* joints, const double* refs) override;
 
     /**
      * @brief Commands a relative position move for a specific joint.
@@ -702,7 +728,7 @@ public:
      * @note Positive delta values move in the positive joint direction.
      * @note Motion profile follows the same trapezoidal trajectory as absolute moves.
      */
-    bool relativeMove(int j, double delta) override;
+    yarp::dev::ReturnValue relativeMove(int j, double delta) override;
 
     /**
      * @brief Commands relative position moves for all joints simultaneously.
@@ -718,7 +744,7 @@ public:
      * @note All joints move simultaneously but independently.
      * @note Zero delta values result in no motion for those joints.
      */
-    bool relativeMove(const double* deltas) override;
+    yarp::dev::ReturnValue relativeMove(const double* deltas) override;
 
     /**
      * @brief Commands relative position moves for a subset of joints.
@@ -735,7 +761,7 @@ public:
      * @note Current positions are read for target calculation at command time.
      * @note Non-specified joints are not affected by this command.
      */
-    bool relativeMove(const int n_joint, const int* joints, const double* deltas) override;
+    yarp::dev::ReturnValue relativeMove(const int n_joint, const int* joints, const double* deltas) override;
 
     /**
      * @brief Checks if a specific joint has completed its motion.
@@ -753,7 +779,7 @@ public:
      * @note This includes both position accuracy and velocity settling requirements.
      * @note The function checks the drive's internal motion status, not just position error.
      */
-    bool checkMotionDone(int j, bool* flag) override;
+    yarp::dev::ReturnValue checkMotionDone(int j, bool* flag) override;
 
     /**
      * @brief Checks if all joints have completed their motions.
@@ -768,7 +794,7 @@ public:
      * @note Useful for coordinated motion sequences where all axes must complete.
      * @note Individual joint errors will cause this function to return false.
      */
-    bool checkMotionDone(bool* flag) override;
+    yarp::dev::ReturnValue checkMotionDone(bool* flag) override;
 
     /**
      * @brief Checks if specific joints have completed their motions.
@@ -785,7 +811,7 @@ public:
      * @note Non-specified joints are ignored in the completion check.
      * @note Joint indices must be valid (0 to num_axes-1).
      */
-    bool checkMotionDone(const int n_joint, const int* joints, bool* flag) override;
+    yarp::dev::ReturnValue checkMotionDone(const int n_joint, const int* joints, bool* flag) override;
 
     /**
      * @brief Sets the reference speed (profile velocity) for a specific joint.
@@ -803,7 +829,7 @@ public:
      * @note Changes take effect for subsequent position commands, not current motions.
      * @note SDO communication may introduce latency compared to PDO-based commands.
      */
-    bool setRefSpeed(int j, double sp) override;
+    yarp::dev::ReturnValue setTrajSpeed(int j, double sp) override;
 
     /**
      * @brief Sets the reference speeds (profile velocities) for all joints.
@@ -819,7 +845,7 @@ public:
      * @note Settings apply to subsequent position moves, not current motions.
      * @note If any single joint fails, the entire operation may be marked as failed.
      */
-    bool setRefSpeeds(const double* spds) override;
+    yarp::dev::ReturnValue setTrajSpeeds(const double* spds) override;
 
     /**
      * @brief Sets the reference speeds (profile velocities) for specific joints.
@@ -837,7 +863,7 @@ public:
      * @note Non-specified joints retain their current profile velocity settings.
      * @note Joint indices must be valid (0 to num_axes-1).
      */
-    bool setRefSpeeds(const int n_joint, const int* joints, const double* spds) override;
+    yarp::dev::ReturnValue setTrajSpeeds(const int n_joint, const int* joints, const double* spds) override;
 
     /**
      * @brief Gets the current reference speed (profile velocity) for a specific joint.
@@ -853,10 +879,10 @@ public:
      * @note SDO communication may introduce latency for real-time applications.
      * @note The returned value reflects the drive's internal configuration.
      */
-    bool getRefSpeed(int j, double* ref) override;
+    yarp::dev::ReturnValue getTrajSpeed(int j, double* ref) override;
 
     /**
-     * @brief Gets the current reference speeds (profile velocities) for all joints.
+     * @brief Gets the current reference speed (profile velocities) for all joints.
      *
      * This function reads the configured profile velocities from all joints
      * by querying each joint's 0x6081 object via SDO communication.
@@ -870,7 +896,7 @@ public:
      * @note If any single joint read fails, the entire operation may fail.
      * @note Values reflect the drives' current internal configuration.
      */
-    bool getRefSpeeds(double* spds) override;
+    yarp::dev::ReturnValue getTrajSpeeds(double* spds) override;
 
     /**
      * @brief Gets the current reference speeds (profile velocities) for specific joints.
@@ -888,7 +914,7 @@ public:
      * @note Joint indices must be valid (0 to num_axes-1).
      * @note Values reflect the drives' current profile velocity settings.
      */
-    bool getRefSpeeds(const int n_joint, const int* joints, double* spds) override;
+    yarp::dev::ReturnValue getTrajSpeeds(const int n_joint, const int* joints, double* spds) override;
 
     /**
      * @brief Gets the target position for a specific joint.
@@ -905,7 +931,7 @@ public:
      * @note If no position command has been issued, the value may be undefined.
      * @note This function does not read the actual current position.
      */
-    bool getTargetPosition(int j, double* ref) override;
+    yarp::dev::ReturnValue getTargetPosition(int j, double* ref) override;
 
     /**
      * @brief Gets the target positions for all joints.
@@ -922,7 +948,7 @@ public:
      * @note If no position commands have been issued, values may be undefined.
      * @note This function does not read the actual current positions.
      */
-    bool getTargetPositions(double* refs) override;
+    yarp::dev::ReturnValue getTargetPositions(double* refs) override;
 
     /**
      * @brief Gets the target positions for specific joints.
@@ -941,7 +967,7 @@ public:
      * @note If no position commands have been issued for a joint, its value may be undefined.
      * @note This function does not read the actual current positions.
      */
-    bool getTargetPositions(const int n_joint, const int* joints, double* refs) override;
+    yarp::dev::ReturnValue getTargetPositions(const int n_joint, const int* joints, double* refs) override;
 
     // ---------------- IPositionDirect --------------
 
@@ -956,7 +982,7 @@ public:
      * @param ref Absolute position target in joint coordinates.
      * @return true if the reference was accepted, false otherwise.
      */
-    bool setPosition(int j, double ref) override;
+    yarp::dev::ReturnValue setPosition(int j, double ref) override;
 
     /**
      * @brief Streams references for a subset of joints.
@@ -970,7 +996,7 @@ public:
      * @param refs Array of absolute position targets (size = n_joint).
      * @return true if all references were queued, false otherwise.
      */
-    bool setPositions(const int n_joint, const int* joints, const double* refs) override;
+    yarp::dev::ReturnValue setPositions(const int n_joint, const int* joints, const double* refs) override;
 
     /**
      * @brief Streams references for every configured joint.
@@ -981,7 +1007,7 @@ public:
      * @param refs Array of absolute position targets for all joints.
      * @return true if the reference vector was queued, false otherwise.
      */
-    bool setPositions(const double* refs) override;
+    yarp::dev::ReturnValue setPositions(const double* refs) override;
 
     /**
      * @brief Returns the most recent position-direct command for a joint.
@@ -993,7 +1019,7 @@ public:
      * @param ref Pointer to store the last position-direct reference.
      * @return true if a cached value is available, false otherwise.
      */
-    bool getRefPosition(const int joint, double* ref) override;
+    yarp::dev::ReturnValue getRefPosition(const int joint, double* ref) override;
 
     /**
      * @brief Returns the position-direct references for all joints.
@@ -1004,7 +1030,7 @@ public:
      * @param refs Array to store the last position-direct references for all joints.
      * @return true if all cached values were retrieved, false otherwise.
      */
-    bool getRefPositions(double* refs) override;
+    yarp::dev::ReturnValue getRefPositions(double* refs) override;
 
     /**
      * @brief Returns the position-direct references for a subset of joints.
@@ -1017,7 +1043,7 @@ public:
      * @param refs Array to store the corresponding cached references.
      * @return true if all requested values were available, false otherwise.
      */
-    bool getRefPositions(const int n_joint, const int* joints, double* refs) override;
+    yarp::dev::ReturnValue getRefPositions(const int n_joint, const int* joints, double* refs) override;
 
     // ---------------- ICurrentControl --------------
     /**
@@ -1033,7 +1059,7 @@ public:
      * @note Units are Amperes (A). Sign follows the drive convention.
      * @note Value is measured, not the commanded reference.
      */
-    bool getCurrent(int m, double* curr) override;
+    yarp::dev::ReturnValue getCurrent(int m, double* curr) override;
 
     /**
      * @brief Gets the measured currents of all motors.
@@ -1042,7 +1068,7 @@ public:
      *              Size must equal the number of motors/axes.
      * @return true if all values were successfully read, false otherwise.
      */
-    bool getCurrents(double* currs) override;
+    yarp::dev::ReturnValue getCurrents(double* currs) override;
 
     /**
      * @brief Gets the allowable current range for a specific motor.
@@ -1057,7 +1083,7 @@ public:
      *
      * @note Ranges may reflect rated/peak limits configured on the drive.
      */
-    bool getCurrentRange(int m, double* min, double* max) override;
+    yarp::dev::ReturnValue getCurrentRange(int m, double* min, double* max) override;
 
     /**
      * @brief Gets the allowable current ranges for all motors.
@@ -1067,7 +1093,7 @@ public:
      *            Arrays must have size equal to the number of motors/axes.
      * @return true if all ranges were successfully read, false otherwise.
      */
-    bool getCurrentRanges(double* min, double* max) override;
+    yarp::dev::ReturnValue getCurrentRanges(double* min, double* max) override;
 
     /**
      * @brief Sets the reference currents for all motors.
@@ -1082,7 +1108,7 @@ public:
      * @note Effective only when the underlying operation mode accepts current
      *       commands (e.g., current/torque-related modes as configured).
      */
-    bool setRefCurrents(const double* currs) override;
+    yarp::dev::ReturnValue setRefCurrents(const double* currs) override;
 
     /**
      * @brief Sets the reference current for a specific motor.
@@ -1094,7 +1120,7 @@ public:
      * @note The command may be clamped to the motor's allowable current range.
      * @note Effective only when the configured mode accepts current commands.
      */
-    bool setRefCurrent(int m, double curr) override;
+    yarp::dev::ReturnValue setRefCurrent(int m, double curr) override;
 
     /**
      * @brief Sets the reference currents for a subset of motors.
@@ -1109,7 +1135,7 @@ public:
      * @note motors and currs must have n_motor elements.
      * @note Values may be clamped to each motor's allowable range.
      */
-    bool setRefCurrents(const int n_motor, const int* motors, const double* currs) override;
+    yarp::dev::ReturnValue setRefCurrents(const int n_motor, const int* motors, const double* currs) override;
 
     /**
      * @brief Gets the last commanded reference currents for all motors.
@@ -1121,7 +1147,7 @@ public:
      *              Size must equal the number of motors/axes.
      * @return true if all values were retrieved, false otherwise.
      */
-    bool getRefCurrents(double* currs) override;
+    yarp::dev::ReturnValue getRefCurrents(double* currs) override;
 
     /**
      * @brief Gets the last commanded reference current for a specific motor.
@@ -1133,8 +1159,23 @@ public:
      * @param curr Pointer to store the reference current (A).
      * @return true if the value was retrieved, false otherwise.
      */
-    bool getRefCurrent(int m, double* curr) override;
-    // ---------------- IMotor --------------
+    yarp::dev::ReturnValue getRefCurrent(int m, double* curr) override;
+
+    /**
+     * @brief Gets the motor torque parameters for a specific joint.
+     * @param j Index of the joint.
+     * @param params Pointer to store the motor torque parameters.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
+     */
+    yarp::dev::ReturnValue getMotorTorqueParams(int j, yarp::dev::MotorTorqueParameters* params) override;
+
+    /**
+     * @brief Sets the motor torque parameters for a specific joint.
+     * @param j Index of the joint.
+     * @param params Motor torque parameters to set.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
+     */
+    yarp::dev::ReturnValue setMotorTorqueParams(int j, const yarp::dev::MotorTorqueParameters params) override;
 
     /**
      * @brief Gets the number of motors controlled by the device.
@@ -1145,7 +1186,7 @@ public:
      * @param num Pointer to store the number of motors.
      * @return true if the parameter was successfully read, false otherwise.
      */
-    bool getNumberOfMotors(int* num) override;
+    yarp::dev::ReturnValue getNumberOfMotors(int* num) override;
 
     /**
      * @brief Gets the temperature of a specific motor.
@@ -1156,7 +1197,7 @@ public:
      * @param val Pointer to store the temperature value.
      * @return true if the parameter was successfully read, false otherwise.
      */
-    bool getTemperature(int m, double* val) override;
+    yarp::dev::ReturnValue getTemperature(int m, double* val) override;
 
     /**
      * @brief Gets the temperatures of all motors.
@@ -1166,7 +1207,7 @@ public:
      * @param vals Array to store the temperature values (size must equal number of motors).
      * @return true if all parameters were successfully read, false otherwise.
      */
-    bool getTemperatures(double* vals) override;
+    yarp::dev::ReturnValue getTemperatures(double* vals) override;
 
     /**
      * @brief Gets the temperature limit of a specific motor.
@@ -1175,10 +1216,9 @@ public:
      *
      * @param m Index of the motor (0-based).
      * @param temp Pointer to store the temperature limit value.
-     * @return true if the parameter was successfully read, false otherwise.
-     * @note This function is not implemented so it always returns false.
+     * @return yarp::dev::ReturnValue::return_value_error_generic (not implemented).
      */
-    bool getTemperatureLimit(int m, double* temp) override;
+    yarp::dev::ReturnValue getTemperatureLimit(int m, double* temp) override;
 
     /**
      * @brief Sets the temperature limit of a specific motor.
@@ -1187,10 +1227,9 @@ public:
      *
      * @param m Index of the motor (0-based).
      * @param temp Temperature limit value to set.
-     * @return true if the parameter was successfully set, false otherwise.
-     * @note This function is not implemented so it always returns false.
+     * @return yarp::dev::ReturnValue::return_value_error_generic (not implemented).
      */
-    bool setTemperatureLimit(int m, const double temp) override;
+    yarp::dev::ReturnValue setTemperatureLimit(int m, const double temp) override;
 
     /**
      * @brief Gets the gearbox ratio of a specific motor.
@@ -1201,7 +1240,7 @@ public:
      * @param val Pointer to store the gearbox ratio value.
      * @return true if the parameter was successfully read, false otherwise.
      */
-    bool getGearboxRatio(int m, double* val) override;
+    yarp::dev::ReturnValue getGearboxRatio(int m, double* val) override;
 
     /**
      * @brief Sets the gearbox ratio of a specific motor.
@@ -1210,119 +1249,96 @@ public:
      *
      * @param m Index of the motor (0-based).
      * @param val Gearbox ratio value to set.
-     * @return true if the parameter was successfully set, false otherwise.
-     * @note This function is not implemented so it always returns false.
+     * @return yarp::dev::ReturnValue::return_value_error_generic (not implemented).
      */
-    bool setGearboxRatio(int m, const double val) override;
+    yarp::dev::ReturnValue setGearboxRatio(int m, const double val) override;
 
     // ---------------- IControlLimits --------------
     /**
      * @brief Sets the position limits for a specific axis.
-     *
-     * This function sets the minimum and maximum position limits for the specified axis.
-     * The limits are enforced by the device to prevent motion beyond the defined range.
-     *
      * @param axis Index of the axis (0-based).
      * @param min Minimum position limit (in joint units, e.g., degrees).
      * @param max Maximum position limit (in joint units, e.g., degrees).
-     * @return true if the limits were successfully set, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool setLimits(int axis, double min, double max) override;
+    yarp::dev::ReturnValue setPosLimits(int axis, double min, double max) override;
 
     /**
      * @brief Gets the position limits for a specific axis.
-     *
-     * This function retrieves the minimum and maximum position limits for the specified axis.
-     *
      * @param axis Index of the axis (0-based).
      * @param min Pointer to store the minimum position limit (in joint units, e.g., degrees).
      * @param max Pointer to store the maximum position limit (in joint units, e.g., degrees).
-     * @return true if the limits were successfully retrieved, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getLimits(int axis, double* min, double* max) override;
+    yarp::dev::ReturnValue getPosLimits(int axis, double* min, double* max) override;
 
     /**
      * @brief Sets the velocity limits for a specific axis.
-     *
-     * This function sets the minimum and maximum velocity limits for the specified axis.
-     * The limits are enforced by the device to prevent motion beyond the defined range.
-     *
      * @param axis Index of the axis (0-based).
      * @param min Minimum velocity limit (in joint units per second, e.g., degrees/s).
      * @param max Maximum velocity limit (in joint units per second, e.g., degrees/s).
-     * @return true if the limits were successfully set, false otherwise.
-     * @note The velocity limits is not implemented in this driver, so it always returns false.
+     * @return yarp::dev::ReturnValue::return_value_error_generic (not implemented).
      */
-    bool setVelLimits(int axis, double min, double max) override;
+    yarp::dev::ReturnValue setVelLimits(int axis, double min, double max) override;
 
     /**
      * @brief Gets the velocity limits for a specific axis.
-     *
-     * This function retrieves the minimum and maximum velocity limits for the specified axis.
-     *
      * @param axis Index of the axis (0-based).
-     * @param min Pointer to store the minimum velocity limit (in joint units per second, e.g.,
-     * degrees/s).
-     * @param max Pointer to store the maximum velocity limit (in joint units per second, e.g.,
-     * degrees/s).
-     * @return true if the limits were successfully retrieved, false otherwise.
-     * @note The velocity limits is not implemented in this driver, so it always returns false.
+     * @param min Pointer to store the minimum velocity limit (in joint units per second, e.g., degrees/s).
+     * @param max Pointer to store the maximum velocity limit (in joint units per second, e.g., degrees/s).
+     * @return yarp::dev::ReturnValue::return_value_error_generic (not implemented).
      */
-    bool getVelLimits(int axis, double* min, double* max) override;
+    yarp::dev::ReturnValue getVelLimits(int axis, double* min, double* max) override;
 
     /**
      * @brief Gets the interaction mode of a specific axis.
      * @param axis Index of the axis (0-based).
      * @param mode Pointer to store the interaction mode.
-     * @return true if the mode was successfully retrieved, false otherwise.
-     * @note The interaction mode is not implemented in this driver, it always returns stiff.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getInteractionMode(int axis, yarp::dev::InteractionModeEnum* mode) override;
+    yarp::dev::ReturnValue getInteractionMode(int axis, yarp::dev::InteractionModeEnum* mode) override;
 
     /**
      * @brief Gets the interaction modes of a subset of joints.
      * @param n_joints Number of joints.
      * @param joints Array of joint indices.
      * @param modes Array to store the interaction modes.
-     * @return true if the modes were successfully retrieved, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool
+    yarp::dev::ReturnValue
     getInteractionModes(int n_joints, int* joints, yarp::dev::InteractionModeEnum* modes) override;
 
     /**
      * @brief Gets the interaction modes of all joints.
      * @param modes Array to store the interaction modes.
-     * @return true if the modes were successfully retrieved, false otherwise.
+     * @return yarp::dev::ReturnValue::return_value_ok if successful, error code otherwise.
      */
-    bool getInteractionModes(yarp::dev::InteractionModeEnum* modes) override;
+    yarp::dev::ReturnValue getInteractionModes(yarp::dev::InteractionModeEnum* modes) override;
 
     /**
      * @brief Sets the interaction mode of a specific axis.
      * @param axis Index of the axis (0-based).
      * @param mode Interaction mode to set.
-     * @return true if the mode was successfully set, false otherwise.
-     * @note The interaction mode is not implemented in this driver, so it always returns false.
+     * @return yarp::dev::ReturnValue::return_value_error_generic (not implemented).
      */
-    bool setInteractionMode(int axis, yarp::dev::InteractionModeEnum mode) override;
+    yarp::dev::ReturnValue setInteractionMode(int axis, yarp::dev::InteractionModeEnum mode) override;
 
     /**
      * @brief Sets the interaction modes of a subset of joints.
      * @param n_joints Number of joints.
      * @param joints Array of joint indices.
      * @param modes Array of interaction modes to set.
-     * @return true if the modes were successfully set, false otherwise.
-     * @note The interaction mode is not implemented in this driver, so it always returns false.
+     * @return yarp::dev::ReturnValue::return_value_error_generic (not implemented).
      */
-    bool
+    yarp::dev::ReturnValue
     setInteractionModes(int n_joints, int* joints, yarp::dev::InteractionModeEnum* modes) override;
 
     /**
      * @brief Sets the interaction modes of all joints.
      * @param modes Array of interaction modes to set.
-     * @return true if the modes were successfully set, false otherwise.
-     * @note The interaction mode is not implemented in this driver, so it always returns false.
+     * @return yarp::dev::ReturnValue::return_value_error_generic (not implemented).
      */
-    bool setInteractionModes(yarp::dev::InteractionModeEnum* modes) override;
+    yarp::dev::ReturnValue setInteractionModes(yarp::dev::InteractionModeEnum* modes) override;
 
 private:
     struct Impl;

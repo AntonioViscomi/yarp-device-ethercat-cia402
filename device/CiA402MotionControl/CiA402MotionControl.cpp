@@ -403,7 +403,7 @@ struct CiA402MotionControl::Impl
                     "%s: setLimits: SDO write 0x607D:01 (min) failed for axis %d",
                     Impl::kClassName.data(),
                     axis);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         errorCode = this->ethercatManager.writeSDO<int32_t>(this->firstSlave + axis,
@@ -416,10 +416,10 @@ struct CiA402MotionControl::Impl
                     "%s: setLimits: SDO write 0x607D:02 (max) failed for axis %d",
                     Impl::kClassName.data(),
                     axis);
-            return false;
+            return ReturnValue_error_generic;
         }
 
-        return true;
+        return ReturnValue_ok;
     }
 
     //--------------------------------------------------------------------------
@@ -466,7 +466,7 @@ struct CiA402MotionControl::Impl
                     enc2ResInv[j]);
         }
 
-        return true;
+        return ReturnValue_ok;
     }
 
     static std::tuple<double, double, const char*> decode60A9(uint32_t v)
@@ -529,7 +529,7 @@ struct CiA402MotionControl::Impl
         }
 
         yCInfo(CIA402, "%s successfully read velocity conversion units from SDO", logPrefix);
-        return true;
+        return ReturnValue_ok;
     }
 
     // Convert loop-shaft counts to joint degrees, using the configured
@@ -577,7 +577,7 @@ struct CiA402MotionControl::Impl
             yCError(CIA402,
                     "%s: setPositionWindowDeg: invalid joint index",
                     Impl::kClassName.data());
-            return false;
+            return ReturnValue_error_generic;
         }
         const int s = this->firstSlave + j;
 
@@ -600,7 +600,7 @@ struct CiA402MotionControl::Impl
                     "%s: setPositionWindowDeg: SDO 0x6067 write failed on joint %d",
                     Impl::kClassName.data(),
                     j);
-            return false;
+            return ReturnValue_error_generic;
         }
         auto e2 = this->ethercatManager.writeSDO<uint32_t>(s, 0x6068, 0x00, rawTime);
         if (e2 != ::CiA402::EthercatManager::Error::NoError)
@@ -609,9 +609,9 @@ struct CiA402MotionControl::Impl
                     "%s: setPositionWindowDeg: SDO 0x6068 write failed on joint %d",
                     Impl::kClassName.data(),
                     j);
-            return false;
+            return ReturnValue_error_generic;
         }
-        return true;
+        return ReturnValue_ok;
     }
 
     bool readMotorConstants()
@@ -682,7 +682,7 @@ struct CiA402MotionControl::Impl
         }
 
         yCInfo(CIA402, "%s successfully read motor constants from SDO", logPrefix);
-        return true;
+        return ReturnValue_ok;
     }
 
     /**
@@ -749,7 +749,7 @@ struct CiA402MotionControl::Impl
         }
 
         yCInfo(CIA402, "%s successfully read gear ratios from SDO", logPrefix);
-        return true;
+        return ReturnValue_ok;
     }
 
     bool readTorqueValues()
@@ -767,7 +767,7 @@ struct CiA402MotionControl::Impl
                 != ::CiA402::EthercatManager::Error::NoError)
             {
                 yCError(CIA402, "%s j=%zu cannot read rated torque (0x6076:00)", logPrefix, j);
-                return false;
+                return ReturnValue_error_generic;
             }
             ratedMotorTorqueNm[j] = double(rated_mNm) / 1000.0; // motor Nm
         }
@@ -779,7 +779,7 @@ struct CiA402MotionControl::Impl
                 != ::CiA402::EthercatManager::Error::NoError)
             {
                 yCError(CIA402, "%s j=%zu cannot read max torque (0x6072:00)", logPrefix, j);
-                return false;
+                return ReturnValue_error_generic;
             }
             maxMotorTorqueNm[j] = (double(maxPerm) / 1000.0) * ratedMotorTorqueNm[j];
             yCDebug(CIA402,
@@ -791,7 +791,7 @@ struct CiA402MotionControl::Impl
         }
 
         yCInfo(CIA402, "%s successfully read torque values from SDO", logPrefix);
-        return true;
+        return ReturnValue_ok;
     }
 
     void setSDORefSpeed(int j, double spDegS)
@@ -1063,7 +1063,7 @@ struct CiA402MotionControl::Impl
                 }
             }
         }
-        return true;
+        return ReturnValue_ok;
     }
 
     bool readFeedback()
@@ -1339,7 +1339,7 @@ struct CiA402MotionControl::Impl
                       : 0.0;
         }
 
-        return true;
+        return ReturnValue_ok;
     }
 
     //--------------------------------------------------------------------------
@@ -1563,24 +1563,24 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
     if (!cfg.check("ifname") || !cfg.find("ifname").isString())
     {
         yCError(CIA402, "%s: 'ifname' parameter is not a string", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (!cfg.check("num_axes") || !cfg.find("num_axes").isInt32())
     {
         yCError(CIA402, "%s: 'num_axes' parameter is not an integer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     if (!cfg.check("period") || !cfg.find("period").isFloat64())
     {
         yCError(CIA402, "%s: 'period' parameter is not a float64", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     const double period = cfg.find("period").asFloat64();
     if (period <= 0.0)
     {
         yCError(CIA402, "%s: 'period' parameter must be positive", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     this->setPeriod(period);
     yCDebug(CIA402, "%s: using period = %.6f s", logPrefix, period);
@@ -1640,14 +1640,14 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
         if (!cfg.check(key))
         {
             yCError(CIA402, "%s: missing key '%s'", Impl::kClassName.data(), key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const yarp::os::Value& v = cfg.find(key);
         if (!v.isList())
         {
             yCError(CIA402, "%s: key '%s' is not a list", Impl::kClassName.data(), key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const yarp::os::Bottle* lst = v.asList();
@@ -1657,7 +1657,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                     "%s: internal error: list for key '%s' is null",
                     Impl::kClassName.data(),
                     key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const size_t expected = static_cast<size_t>(m_impl->numAxes);
@@ -1670,7 +1670,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                     key,
                     actual,
                     expected);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         result.reserve(expected);
@@ -1686,7 +1686,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                         i,
                         key);
                 result.clear();
-                return false;
+                return ReturnValue_error_generic;
             }
 
             const std::string val = elem.asString();
@@ -1702,13 +1702,13 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                             val.c_str(),
                             key);
                     result.clear();
-                    return false;
+                    return ReturnValue_error_generic;
                 }
             }
             result.push_back(val);
         }
 
-        return true;
+        return ReturnValue_ok;
     };
 
     auto extractListOfDoubleFromSearchable = [this](const yarp::os::Searchable& cfg,
@@ -1719,14 +1719,14 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
         if (!cfg.check(key))
         {
             yCError(CIA402, "%s: missing key '%s'", Impl::kClassName.data(), key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const yarp::os::Value& v = cfg.find(key);
         if (!v.isList())
         {
             yCError(CIA402, "%s: key '%s' is not a list", Impl::kClassName.data(), key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const yarp::os::Bottle* lst = v.asList();
@@ -1736,7 +1736,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                     "%s: internal error: list for key '%s' is null",
                     Impl::kClassName.data(),
                     key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const size_t expected = static_cast<size_t>(m_impl->numAxes);
@@ -1749,7 +1749,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                     key,
                     actual,
                     expected);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         result.reserve(expected);
@@ -1765,13 +1765,13 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                         i,
                         key);
                 result.clear();
-                return false;
+                return ReturnValue_error_generic;
             }
 
             result.push_back(elem.asFloat64());
         }
 
-        return true;
+        return ReturnValue_ok;
     };
 
     auto extractListOfBoolFromSearchable = [this](const yarp::os::Searchable& cfg,
@@ -1782,14 +1782,14 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
         if (!cfg.check(key))
         {
             yCError(CIA402, "%s: missing key '%s'", Impl::kClassName.data(), key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const yarp::os::Value& v = cfg.find(key);
         if (!v.isList())
         {
             yCError(CIA402, "%s: key '%s' is not a list", Impl::kClassName.data(), key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const yarp::os::Bottle* lst = v.asList();
@@ -1799,7 +1799,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                     "%s: internal error: list for key '%s' is null",
                     Impl::kClassName.data(),
                     key);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         const size_t expected = static_cast<size_t>(m_impl->numAxes);
@@ -1812,7 +1812,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                     key,
                     actual,
                     expected);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         result.reserve(expected);
@@ -1828,13 +1828,13 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                         i,
                         key);
                 result.clear();
-                return false;
+                return ReturnValue_error_generic;
             }
 
             result.push_back(elem.asBool());
         }
 
-        return true;
+        return ReturnValue_ok;
     };
 
     // Encoder mounting configuration (where each encoder is physically located)
@@ -1844,9 +1844,9 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
     std::vector<std::string> enc2MStr; // encoder 2 mount per axis
 
     if (!extractListOfStringFromSearchable(cfg, "enc1_mount", {"motor", "joint"}, enc1MStr))
-        return false;
+        return ReturnValue_error_generic;
     if (!extractListOfStringFromSearchable(cfg, "enc2_mount", {"motor", "joint", "none"}, enc2MStr))
-        return false;
+        return ReturnValue_error_generic;
 
     std::vector<std::string> posSrcJointStr;
     std::vector<std::string> posSrcMotorStr;
@@ -1856,30 +1856,30 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                                            "position_feedback_joint",
                                            {"6064", "enc1", "enc2"},
                                            posSrcJointStr))
-        return false;
+        return ReturnValue_error_generic;
     if (!extractListOfStringFromSearchable(cfg,
                                            "position_feedback_motor",
                                            {"6064", "enc1", "enc2"},
                                            posSrcMotorStr))
-        return false;
+        return ReturnValue_error_generic;
     if (!extractListOfStringFromSearchable(cfg,
                                            "velocity_feedback_joint",
                                            {"606C", "enc1", "enc2"},
                                            velSrcJointStr))
-        return false;
+        return ReturnValue_error_generic;
     if (!extractListOfStringFromSearchable(cfg,
                                            "velocity_feedback_motor",
                                            {"606C", "enc1", "enc2"},
                                            velSrcMotorStr))
-        return false;
+        return ReturnValue_error_generic;
 
     std::vector<double> positionWindowDeg; // position window for targetReached
     std::vector<double> timingWindowMs; // timing window for targetReached
 
     if (!extractListOfDoubleFromSearchable(cfg, "position_window_deg", positionWindowDeg))
-        return false;
+        return ReturnValue_error_generic;
     if (!extractListOfDoubleFromSearchable(cfg, "timing_window_ms", timingWindowMs))
-        return false;
+        return ReturnValue_error_generic;
 
     for (size_t j = 0; j < m_impl->numAxes; ++j)
     {
@@ -2032,7 +2032,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
     {
         auto bad = [&](const char* what) {
             yCError(CIA402, "%s j=%zu invalid configuration: %s", logPrefix, j, what);
-            return true;
+            return ReturnValue_ok;
         };
 
         // --------- Position feedback validation ----------
@@ -2040,26 +2040,26 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
             && (m_impl->enc1Mount[j] == Impl::Mount::None || !hasEnc1Pos(j)))
         {
             if (bad("pos_joint=enc1 but enc1 not mounted/mapped"))
-                return false;
+                return ReturnValue_error_generic;
         }
         if (m_impl->posSrcJoint[j] == Impl::PosSrc::Enc2
             && (m_impl->enc2Mount[j] == Impl::Mount::None || !hasEnc2Pos(j)))
         {
             if (bad("pos_joint=enc2 but enc2 not mounted/mapped"))
-                return false;
+                return ReturnValue_error_generic;
         }
 
         if (m_impl->posSrcMotor[j] == Impl::PosSrc::Enc1
             && (m_impl->enc1Mount[j] == Impl::Mount::None || !hasEnc1Pos(j)))
         {
             if (bad("pos_motor=enc1 but enc1 not mounted/mapped"))
-                return false;
+                return ReturnValue_error_generic;
         }
         if (m_impl->posSrcMotor[j] == Impl::PosSrc::Enc2
             && (m_impl->enc2Mount[j] == Impl::Mount::None || !hasEnc2Pos(j)))
         {
             if (bad("pos_motor=enc2 but enc2 not mounted/mapped"))
-                return false;
+                return ReturnValue_error_generic;
         }
 
         // --------- Velocity feedback validation ----------
@@ -2067,26 +2067,26 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
             && (m_impl->enc1Mount[j] == Impl::Mount::None || !hasEnc1Vel(j)))
         {
             if (bad("vel_joint=enc1 but enc1 not mounted/mapped"))
-                return false;
+                return ReturnValue_error_generic;
         }
         if (m_impl->velSrcJoint[j] == Impl::VelSrc::Enc2
             && (m_impl->enc2Mount[j] == Impl::Mount::None || !hasEnc2Vel(j)))
         {
             if (bad("vel_joint=enc2 but enc2 not mounted/mapped"))
-                return false;
+                return ReturnValue_error_generic;
         }
 
         if (m_impl->velSrcMotor[j] == Impl::VelSrc::Enc1
             && (m_impl->enc1Mount[j] == Impl::Mount::None || !hasEnc1Vel(j)))
         {
             if (bad("vel_motor=enc1 but enc1 not mounted/mapped"))
-                return false;
+                return ReturnValue_error_generic;
         }
         if (m_impl->velSrcMotor[j] == Impl::VelSrc::Enc2
             && (m_impl->enc2Mount[j] == Impl::Mount::None || !hasEnc2Vel(j)))
         {
             if (bad("vel_motor=enc2 but enc2 not mounted/mapped"))
-                return false;
+                return ReturnValue_error_generic;
         }
     }
 
@@ -2096,27 +2096,27 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
     if (!m_impl->readEncoderResolutions())
     {
         yCError(CIA402, "%s failed to read encoder resolutions from SDO", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
     if (!m_impl->readSiVelocityUnits())
     {
         yCError(CIA402, "%s failed to read velocity conversions from SDO", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
     if (!m_impl->readGearRatios())
     {
         yCError(CIA402, "%s failed to read gear ratios from SDO", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
     if (!m_impl->readMotorConstants())
     {
         yCError(CIA402, "%s failed to read motor constants from SDO", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
     if (!m_impl->readTorqueValues())
     {
         yCError(CIA402, "%s failed to read torque values from SDO", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // ---------------------------------------------------------------------
@@ -2127,21 +2127,21 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                                            m_impl->limits.minPositionLimitDeg))
     {
         yCError(CIA402, "%s failed to parse pos_limit_min_deg", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
     if (!extractListOfDoubleFromSearchable(cfg,
                                            "pos_limit_max_deg",
                                            m_impl->limits.maxPositionLimitDeg))
     {
         yCError(CIA402, "%s failed to parse pos_limit_max_deg", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
     if (!extractListOfBoolFromSearchable(cfg,
                                          "use_position_limits_from_config",
                                          m_impl->limits.usePositionLimitsFromConfig))
     {
         yCError(CIA402, "%s failed to parse use_position_limits_from_config", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     if (m_impl->limits.minPositionLimitDeg.size() != m_impl->numAxes
@@ -2152,7 +2152,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                 "%s position limit lists must have exactly %zu elements",
                 logPrefix,
                 m_impl->numAxes);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     for (size_t j = 0; j < m_impl->numAxes; ++j)
@@ -2183,7 +2183,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
             if (!m_impl->setPositionCountsLimits(j, minCounts, maxCounts))
             {
                 yCError(CIA402, "%s j=%zu failed to set position limits", logPrefix, j);
-                return false;
+                return ReturnValue_error_generic;
             }
         } else
         {
@@ -2197,7 +2197,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
                 || e2 != ::CiA402::EthercatManager::Error::NoError)
             {
                 yCError(CIA402, "%s j=%zu failed to read position limits from SDO", logPrefix, j);
-                return false;
+                return ReturnValue_error_generic;
             }
 
             // Convert counts back to joint-space degrees.
@@ -2229,7 +2229,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
         if (!rx)
         {
             yCError(CIA402, "%s invalid slave index %d for axis %zu", logPrefix, slave, j);
-            return false;
+            return ReturnValue_error_generic;
         }
         rx->Controlword = 0x0000;
         rx->OpMode = 0;
@@ -2239,7 +2239,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
     if (m_impl->ethercatManager.sendReceive() != ::CiA402::EthercatManager::Error::NoError)
     {
         yCError(CIA402, "%s initial EtherCAT send/receive after SDO reading failed", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // ---------------------------------------------------------------------
@@ -2250,7 +2250,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
         if (!m_impl->setPositionWindowDeg(j, positionWindowDeg[j], timingWindowMs[j]))
         {
             yCError(CIA402, "%s j=%d failed to set position window", logPrefix, j);
-            return false;
+            return ReturnValue_error_generic;
         }
     }
 
@@ -2282,12 +2282,12 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
 
     // get the axes names (if available)
     if (!extractListOfStringFromSearchable(cfg, "axes_names", {}, m_impl->variables.jointNames))
-        return false;
+        return ReturnValue_error_generic;
 
     constexpr double initialPositionVelocityDegs = 10;
     for (size_t j = 0; j < m_impl->numAxes; ++j)
     {
-        // Cache for getRefSpeed()
+        // Cache for getTrajSpeeds()
         {
             std::lock_guard<std::mutex> lock(m_impl->ppState.mutex);
             m_impl->ppState.ppRefSpeedDegS[j] = initialPositionVelocityDegs;
@@ -2305,7 +2305,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
         if (opErr != ::CiA402::EthercatManager::Error::NoError)
         {
             yCError(CIA402, "%s failed to enter OPERATIONAL state", logPrefix);
-            return false;
+            return ReturnValue_error_generic;
         }
 
         if (enableDc)
@@ -2315,7 +2315,7 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
             if (dcErr != ::CiA402::EthercatManager::Error::NoError)
             {
                 yCError(CIA402, "%s failed to enable DC SYNC0", logPrefix);
-                return false;
+                return ReturnValue_error_generic;
             }
         } else
         {
@@ -2329,10 +2329,10 @@ bool CiA402MotionControl::open(yarp::os::Searchable& cfg)
     if (!this->start())
     {
         yCError(CIA402, "%s failed to start device thread", logPrefix);
-        return false;
+        return ReturnValue_error_generic;
     }
 
-    return true;
+    return ReturnValue_ok;
 }
 
 //  close()  —  stop the thread & release the NIC
@@ -2342,7 +2342,7 @@ bool CiA402MotionControl::close()
     this->suspend();
     this->stop(); // PeriodicThread → graceful stop
     yCInfo(CIA402, "%s: EtheCAT master closed.", Impl::kClassName.data());
-    return true;
+    return ReturnValue_ok;
 }
 
 //  run()  —  gets called every period (real-time control loop)
@@ -2554,60 +2554,60 @@ void CiA402MotionControl::run()
 // ----------------- IMotorEncoders --------------
 // -----------------------------------------------
 
-bool CiA402MotionControl::getNumberOfMotorEncoders(int* num)
+yarp::dev::ReturnValue CiA402MotionControl::getNumberOfMotorEncoders(int* num)
 {
     if (num == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     *num = static_cast<int>(m_impl->numAxes);
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::resetMotorEncoder(int m)
+yarp::dev::ReturnValue CiA402MotionControl::resetMotorEncoder(int m)
 {
     yCError(CIA402, "%s: resetMotorEncoder() not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::resetMotorEncoders()
+yarp::dev::ReturnValue CiA402MotionControl::resetMotorEncoders()
 {
     yCError(CIA402, "%s: resetMotorEncoders() not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::setMotorEncoderCountsPerRevolution(int m, const double cpr)
+yarp::dev::ReturnValue CiA402MotionControl::setMotorEncoderCountsPerRevolution(int m, const double cpr)
 {
     yCError(CIA402,
             "%s: setMotorEncoderCountsPerRevolution() not implemented",
             Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::setMotorEncoder(int m, const double v)
+yarp::dev::ReturnValue CiA402MotionControl::setMotorEncoder(int m, const double v)
 {
     yCError(CIA402, "%s: setMotorEncoder() not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::setMotorEncoders(const double*)
+yarp::dev::ReturnValue CiA402MotionControl::setMotorEncoders(const double*)
 {
     yCError(CIA402, "%s: setMotorEncoders() not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::getMotorEncoderCountsPerRevolution(int m, double* cpr)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncoderCountsPerRevolution(int m, double* cpr)
 {
     if (cpr == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
@@ -2619,105 +2619,105 @@ bool CiA402MotionControl::getMotorEncoderCountsPerRevolution(int m, double* cpr)
         else if (m_impl->enc2Mount[m] == Impl::Mount::Motor)
             *cpr = static_cast<double>(m_impl->enc2Res[m]);
         else
-            return false; // no encoder on motor side
+            return ReturnValue_error_generic; // no encoder on motor side
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getMotorEncoder(int m, double* v)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncoder(int m, double* v)
 {
     if (v == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *v = m_impl->variables.motorEncoders[m];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getMotorEncoders(double* encs)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncoders(double* encs)
 {
     if (encs == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         std::memcpy(encs, m_impl->variables.motorEncoders.data(), m_impl->numAxes * sizeof(double));
     }
 
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getMotorEncodersTimed(double* encs, double* time)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncodersTimed(double* encs, double* time)
 {
     if (encs == nullptr || time == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         std::memcpy(encs, m_impl->variables.motorEncoders.data(), m_impl->numAxes * sizeof(double));
         std::memcpy(time, m_impl->variables.feedbackTime.data(), m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getMotorEncoderTimed(int m, double* encs, double* time)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncoderTimed(int m, double* encs, double* time)
 {
     if (encs == nullptr || time == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *encs = m_impl->variables.motorEncoders[m];
         *time = m_impl->variables.feedbackTime[m];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getMotorEncoderSpeed(int m, double* sp)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncoderSpeed(int m, double* sp)
 {
     if (sp == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *sp = m_impl->variables.motorVelocities[m];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getMotorEncoderSpeeds(double* spds)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncoderSpeeds(double* spds)
 {
     if (spds == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
@@ -2725,34 +2725,34 @@ bool CiA402MotionControl::getMotorEncoderSpeeds(double* spds)
                     m_impl->variables.motorVelocities.data(),
                     m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getMotorEncoderAcceleration(int m, double* acc)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncoderAcceleration(int m, double* acc)
 {
     if (acc == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *acc = m_impl->variables.motorAccelerations[m];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getMotorEncoderAccelerations(double* accs)
+yarp::dev::ReturnValue CiA402MotionControl::getMotorEncoderAccelerations(double* accs)
 {
     if (accs == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
@@ -2760,18 +2760,18 @@ bool CiA402MotionControl::getMotorEncoderAccelerations(double* accs)
                     m_impl->variables.motorAccelerations.data(),
                     m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
 // -----------------------------------------------
 // ----------------- IEncoders  ------------------
 // -----------------------------------------------
-bool CiA402MotionControl::getEncodersTimed(double* encs, double* time)
+yarp::dev::ReturnValue CiA402MotionControl::getEncodersTimed(double* encs, double* time)
 {
     if (encs == nullptr || time == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
@@ -2780,89 +2780,89 @@ bool CiA402MotionControl::getEncodersTimed(double* encs, double* time)
                     m_impl->numAxes * sizeof(double));
         std::memcpy(time, m_impl->variables.feedbackTime.data(), m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getEncoderTimed(int j, double* encs, double* time)
+yarp::dev::ReturnValue CiA402MotionControl::getEncoderTimed(int j, double* encs, double* time)
 {
     if (encs == nullptr || time == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *encs = m_impl->variables.jointPositions[j];
         *time = m_impl->variables.feedbackTime[j];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getAxes(int* ax)
+yarp::dev::ReturnValue CiA402MotionControl::getAxes(int* ax)
 {
     if (ax == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     *ax = static_cast<int>(m_impl->numAxes);
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::resetEncoder(int j)
+yarp::dev::ReturnValue CiA402MotionControl::resetEncoder(int j)
 {
     yCError(CIA402, "%s: resetEncoder() not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::resetEncoders()
+yarp::dev::ReturnValue CiA402MotionControl::resetEncoders()
 {
     yCError(CIA402, "%s: resetEncoders() not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::setEncoder(int j, const double val)
+yarp::dev::ReturnValue CiA402MotionControl::setEncoder(int j, const double val)
 {
     yCError(CIA402, "%s: setEncoder() not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::setEncoders(const double* vals)
+yarp::dev::ReturnValue CiA402MotionControl::setEncoders(const double* vals)
 {
     yCError(CIA402, "%s: setEncoders() not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::getEncoder(int j, double* v)
+yarp::dev::ReturnValue CiA402MotionControl::getEncoder(int j, double* v)
 {
     if (v == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *v = m_impl->variables.jointPositions[j];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getEncoders(double* encs)
+yarp::dev::ReturnValue CiA402MotionControl::getEncoders(double* encs)
 {
     if (encs == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
@@ -2870,34 +2870,34 @@ bool CiA402MotionControl::getEncoders(double* encs)
                     m_impl->variables.jointPositions.data(),
                     m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getEncoderSpeed(int j, double* sp)
+yarp::dev::ReturnValue CiA402MotionControl::getEncoderSpeed(int j, double* sp)
 {
     if (sp == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *sp = m_impl->variables.jointVelocities[j];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getEncoderSpeeds(double* spds)
+yarp::dev::ReturnValue CiA402MotionControl::getEncoderSpeeds(double* spds)
 {
     if (spds == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
@@ -2905,34 +2905,34 @@ bool CiA402MotionControl::getEncoderSpeeds(double* spds)
                     m_impl->variables.jointVelocities.data(),
                     m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getEncoderAcceleration(int j, double* spds)
+yarp::dev::ReturnValue CiA402MotionControl::getEncoderAcceleration(int j, double* spds)
 {
     if (spds == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *spds = m_impl->variables.jointAccelerations[j];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getEncoderAccelerations(double* accs)
+yarp::dev::ReturnValue CiA402MotionControl::getEncoderAccelerations(double* accs)
 {
     if (accs == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
@@ -2940,87 +2940,87 @@ bool CiA402MotionControl::getEncoderAccelerations(double* accs)
                     m_impl->variables.jointAccelerations.data(),
                     m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
 /// -----------------------------------------------
 /// ----------------- IAxisInfo ------------------
 /// -----------------------------------------------
 
-bool CiA402MotionControl::getAxisName(int j, std::string& name)
+yarp::dev::ReturnValue CiA402MotionControl::getAxisName(int j, std::string& name)
 {
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // We assume that the name is already filled in the open() method and does not change
     // during the lifetime of the object. For this reason we do not need to lock the mutex
     // here.
     name = m_impl->variables.jointNames[j];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getJointType(int axis, yarp::dev::JointTypeEnum& type)
+yarp::dev::ReturnValue CiA402MotionControl::getJointType(int axis, yarp::dev::JointTypeEnum& type)
 {
     if (axis >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), axis);
-        return false;
+        return ReturnValue_error_generic;
     }
     type = yarp::dev::JointTypeEnum::VOCAB_JOINTTYPE_REVOLUTE; // TODO: add support for linear
                                                                // joints
-    return true;
+    return ReturnValue_ok;
 }
 
 // -------------------------- IControlMode ------------------------------------
-bool CiA402MotionControl::getControlMode(int j, int* mode)
+yarp::dev::ReturnValue CiA402MotionControl::getControlMode(int j, int* mode)
 {
     if (mode == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
         std::lock_guard<std::mutex> lock(m_impl->controlModeState.mutex);
         *mode = m_impl->controlModeState.active[j];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getControlModes(int* modes)
+yarp::dev::ReturnValue CiA402MotionControl::getControlModes(int* modes)
 {
     if (modes == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
         std::lock_guard<std::mutex> l(m_impl->controlModeState.mutex);
         std::memcpy(modes, m_impl->controlModeState.active.data(), m_impl->numAxes * sizeof(int));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getControlModes(const int n, const int* joints, int* modes)
+yarp::dev::ReturnValue CiA402MotionControl::getControlModes(const int n, const int* joints, int* modes)
 {
     if (modes == nullptr || joints == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (n <= 0)
     {
         yCError(CIA402, "%s: invalid number of joints %d", Impl::kClassName.data(), n);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
@@ -3030,25 +3030,25 @@ bool CiA402MotionControl::getControlModes(const int n, const int* joints, int* m
             if (joints[k] >= static_cast<int>(m_impl->numAxes))
             {
                 yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joints[k]);
-                return false;
+                return ReturnValue_error_generic;
             }
             modes[k] = m_impl->controlModeState.active[joints[k]];
         }
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setControlMode(const int j, const int mode)
+yarp::dev::ReturnValue CiA402MotionControl::setControlMode(const int j, const int mode)
 {
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
     if (Impl::yarpToCiaOp(mode) < 0)
     {
         yCError(CIA402, "%s: control mode %d not supported", Impl::kClassName.data(), mode);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> l(m_impl->controlModeState.mutex);
@@ -3058,20 +3058,20 @@ bool CiA402MotionControl::setControlMode(const int j, const int mode)
         m_impl->controlModeState.cstFlavor[j] = mode;
     }
 
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setControlModes(const int n, const int* joints, int* modes)
+yarp::dev::ReturnValue CiA402MotionControl::setControlModes(const int n, const int* joints, int* modes)
 {
     if (modes == nullptr || joints == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (n <= 0)
     {
         yCError(CIA402, "%s: invalid number of joints %d", Impl::kClassName.data(), n);
-        return false;
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> l(m_impl->controlModeState.mutex);
     for (int k = 0; k < n; ++k)
@@ -3079,7 +3079,7 @@ bool CiA402MotionControl::setControlModes(const int n, const int* joints, int* m
         if (joints[k] >= static_cast<int>(m_impl->numAxes))
         {
             yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joints[k]);
-            return false;
+            return ReturnValue_error_generic;
         }
         m_impl->controlModeState.target[joints[k]] = modes[k];
 
@@ -3088,15 +3088,15 @@ bool CiA402MotionControl::setControlModes(const int n, const int* joints, int* m
             m_impl->controlModeState.cstFlavor[joints[k]] = modes[k];
         }
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setControlModes(int* modes)
+yarp::dev::ReturnValue CiA402MotionControl::setControlModes(int* modes)
 {
     if (modes == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> l(m_impl->controlModeState.mutex);
     std::memcpy(m_impl->controlModeState.target.data(), modes, m_impl->numAxes * sizeof(int));
@@ -3110,83 +3110,83 @@ bool CiA402MotionControl::setControlModes(int* modes)
         }
     }
 
-    return true;
+    return ReturnValue_ok;
 }
 
 //// -------------------------- ITorqueControl ------------------------------------
-bool CiA402MotionControl::getTorque(int j, double* t)
+yarp::dev::ReturnValue CiA402MotionControl::getTorque(int j, double* t)
 {
     if (t == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
         *t = m_impl->variables.jointTorques[j];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTorques(double* t)
+yarp::dev::ReturnValue CiA402MotionControl::getTorques(double* t)
 {
     if (t == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
 
         std::memcpy(t, m_impl->variables.jointTorques.data(), m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefTorque(int j, double* t)
+yarp::dev::ReturnValue CiA402MotionControl::getRefTorque(int j, double* t)
 {
     if (t == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
         *t = m_impl->setPoints.jointTorques[j];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefTorques(double* t)
+yarp::dev::ReturnValue CiA402MotionControl::getRefTorques(double* t)
 {
     if (t == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
         std::memcpy(t, m_impl->setPoints.jointTorques.data(), m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefTorque(int j, double t)
+yarp::dev::ReturnValue CiA402MotionControl::setRefTorque(int j, double t)
 {
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // (a/b) Only accept if TORQUE is ACTIVE; otherwise reject (not considered)
@@ -3198,22 +3198,22 @@ bool CiA402MotionControl::setRefTorque(int j, double t)
                     "%s: setRefTorque rejected: TORQUE mode is not active for the joint %d",
                     Impl::kClassName.data(),
                     j);
-            return false;
+            return ReturnValue_error_generic;
         }
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     m_impl->setPoints.jointTorques[j] = t;
     m_impl->setPoints.hasTorqueSP[j] = true; // (b)
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefTorques(const double* t)
+yarp::dev::ReturnValue CiA402MotionControl::setRefTorques(const double* t)
 {
     if (t == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         // check that all the joints are in TORQUE mode use std function without for loop
@@ -3227,7 +3227,7 @@ bool CiA402MotionControl::setRefTorques(const double* t)
                         "%zu",
                         Impl::kClassName.data(),
                         j);
-                return false; // reject
+                return ReturnValue_error_generic; // reject
             }
         }
     }
@@ -3235,20 +3235,20 @@ bool CiA402MotionControl::setRefTorques(const double* t)
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     std::memcpy(m_impl->setPoints.jointTorques.data(), t, m_impl->numAxes * sizeof(double));
     std::fill(m_impl->setPoints.hasTorqueSP.begin(), m_impl->setPoints.hasTorqueSP.end(), true);
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefTorques(const int n_joint, const int* joints, const double* t)
+yarp::dev::ReturnValue CiA402MotionControl::setRefTorques(const int n_joint, const int* joints, const double* t)
 {
     if (t == nullptr || joints == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (n_joint <= 0)
     {
         yCError(CIA402, "%s: invalid number of joints %d", Impl::kClassName.data(), n_joint);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // check that all the joints are in TORQUE mode
@@ -3259,7 +3259,7 @@ bool CiA402MotionControl::setRefTorques(const int n_joint, const int* joints, co
             if (joints[k] >= static_cast<int>(m_impl->numAxes))
             {
                 yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joints[k]);
-                return false;
+                return ReturnValue_error_generic;
             }
             if (m_impl->controlModeState.active[joints[k]] != VOCAB_CM_TORQUE)
             {
@@ -3267,7 +3267,7 @@ bool CiA402MotionControl::setRefTorques(const int n_joint, const int* joints, co
                         "%s: setRefTorques rejected: TORQUE mode is not active for the joint %d",
                         Impl::kClassName.data(),
                         joints[k]);
-                return false; // reject
+                return ReturnValue_error_generic; // reject
             }
         }
     }
@@ -3278,35 +3278,35 @@ bool CiA402MotionControl::setRefTorques(const int n_joint, const int* joints, co
         m_impl->setPoints.jointTorques[joints[k]] = t[k];
         m_impl->setPoints.hasTorqueSP[joints[k]] = true;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTorqueRange(int j, double* min, double* max)
+yarp::dev::ReturnValue CiA402MotionControl::getTorqueRange(int j, double* min, double* max)
 {
     if (min == nullptr || max == nullptr)
     {
-        yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: getTorqueRange: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // multiply by the transmission ratio to convert motor torque to joint torque
     *min = -m_impl->maxMotorTorqueNm[j] * m_impl->gearRatio[j];
     *max = m_impl->maxMotorTorqueNm[j] * m_impl->gearRatio[j];
 
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTorqueRanges(double* min, double* max)
+yarp::dev::ReturnValue CiA402MotionControl::getTorqueRanges(double* min, double* max)
 {
     if (min == nullptr || max == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     for (size_t j = 0; j < m_impl->numAxes; ++j)
@@ -3314,15 +3314,15 @@ bool CiA402MotionControl::getTorqueRanges(double* min, double* max)
         min[j] = -m_impl->maxMotorTorqueNm[j] * m_impl->gearRatio[j];
         max[j] = m_impl->maxMotorTorqueNm[j] * m_impl->gearRatio[j];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::velocityMove(int j, double spd)
+yarp::dev::ReturnValue CiA402MotionControl::velocityMove(int j, double spd)
 {
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // (a/b) Only accept if VELOCITY is ACTIVE; otherwise reject
@@ -3336,22 +3336,22 @@ bool CiA402MotionControl::velocityMove(int j, double spd)
                     j);
 
             // this will return true to indicate the rejection was handled
-            return true;
+            return ReturnValue_ok;
         }
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     m_impl->setPoints.jointVelocities[j] = spd;
     m_impl->setPoints.hasVelSP[j] = true; // (b)
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::velocityMove(const double* spds)
+yarp::dev::ReturnValue CiA402MotionControl::velocityMove(const double* spds)
 {
     if (spds == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // check that all the joints are in VELOCITY mode
@@ -3366,7 +3366,7 @@ bool CiA402MotionControl::velocityMove(const double* spds)
                         "%zu",
                         Impl::kClassName.data(),
                         j);
-                return false; // reject
+                return ReturnValue_error_generic; // reject
             }
         }
     }
@@ -3374,34 +3374,34 @@ bool CiA402MotionControl::velocityMove(const double* spds)
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     std::memcpy(m_impl->setPoints.jointVelocities.data(), spds, m_impl->numAxes * sizeof(double));
     std::fill(m_impl->setPoints.hasVelSP.begin(), m_impl->setPoints.hasVelSP.end(), true);
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefVelocity(const int joint, double* vel)
+yarp::dev::ReturnValue CiA402MotionControl::getTargetVelocity(const int joint, double *vel)
 {
     if (vel == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (joint >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joint);
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
         *vel = m_impl->setPoints.jointVelocities[joint];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefVelocities(double* spds)
+yarp::dev::ReturnValue CiA402MotionControl::getTargetVelocities(double* spds)
 {
     if (spds == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
@@ -3409,20 +3409,20 @@ bool CiA402MotionControl::getRefVelocities(double* spds)
                     m_impl->setPoints.jointVelocities.data(),
                     m_impl->numAxes * sizeof(double));
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefVelocities(const int n_joint, const int* joints, double* vels)
+yarp::dev::ReturnValue CiA402MotionControl::getTargetVelocities(const int n_joint, const int* joints, double* vels)
 {
     if (vels == nullptr || joints == nullptr)
     {
-        yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: getTargetVelocities: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     if (n_joint <= 0)
     {
         yCError(CIA402, "%s: invalid number of joints %d", Impl::kClassName.data(), n_joint);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
@@ -3432,24 +3432,20 @@ bool CiA402MotionControl::getRefVelocities(const int n_joint, const int* joints,
             if (joints[k] >= static_cast<int>(m_impl->numAxes))
             {
                 yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joints[k]);
-                return false;
+                return ReturnValue_error_generic;
             }
             vels[k] = m_impl->setPoints.jointVelocities[joints[k]];
         }
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-// Acceleration is expressed in YARP joint units [deg/s^2].
-// For PP we SDO-write 0x6083/0x6084/0x6085 in rpm/s (deg/s^2 ÷ 6).
-// For CSV we just cache the value (no standard accel SDO in CSV).
-
-bool CiA402MotionControl::setRefAcceleration(int j, double accDegS2)
+yarp::dev::ReturnValue CiA402MotionControl::setTrajAcceleration(int j, double accDegS2)
 {
     if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
-        yCError(CIA402, "%s: setRefAcceleration: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        yCError(CIA402, "%s: setTrajAcceleration: joint %d out of range", Impl::kClassName.data(), j);
+        return ReturnValue_error_generic;
     }
 
     // store magnitude
@@ -3463,7 +3459,7 @@ bool CiA402MotionControl::setRefAcceleration(int j, double accDegS2)
     if (accDegS2 > maxAcc)
     {
         yCWarning(CIA402,
-                  "%s: setRefAcceleration: joint %d: acceleration %.2f deg/s^2 too high, "
+                  "%s: setTrajAcceleration: joint %d: acceleration %.2f deg/s^2 too high, "
                   "saturating to %.2f deg/s^2",
                   Impl::kClassName.data(),
                   j,
@@ -3482,7 +3478,7 @@ bool CiA402MotionControl::setRefAcceleration(int j, double accDegS2)
     if (controlMode != VOCAB_CM_POSITION)
     {
         // do nothing if not in PP
-        return true;
+        return ReturnValue_ok;
     }
 
     const int s = m_impl->firstSlave + j;
@@ -3497,35 +3493,35 @@ bool CiA402MotionControl::setRefAcceleration(int j, double accDegS2)
     (void)m_impl->ethercatManager.writeSDO<int32_t>(s, 0x6084, 0x00, acc);
     (void)m_impl->ethercatManager.writeSDO<int32_t>(s, 0x6085, 0x00, acc);
 
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefAccelerations(const double* accsDegS2)
+yarp::dev::ReturnValue CiA402MotionControl::setTrajAccelerations(const double* accsDegS2)
 {
     if (!accsDegS2)
     {
-        yCError(CIA402, "%s: setRefAccelerations: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: setTrajAccelerations: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     bool ok = true;
     for (size_t j = 0; j < m_impl->numAxes; ++j)
     {
-        ok = setRefAcceleration(static_cast<int>(j), accsDegS2[j]) && ok;
+        ok = setTrajAcceleration(static_cast<int>(j), accsDegS2[j]) && ok;
     }
-    return ok;
+    return ok ? ReturnValue_ok : ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::getRefAcceleration(int j, double* acc)
+yarp::dev::ReturnValue CiA402MotionControl::getTrajAcceleration(int j, double* acc)
 {
     if (acc == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     int controlMode = -1;
@@ -3539,19 +3535,19 @@ bool CiA402MotionControl::getRefAcceleration(int j, double* acc)
         // if in PP return the cached value
         std::lock_guard<std::mutex> lock(m_impl->ppState.mutex);
         *acc = m_impl->ppState.ppRefAccelerationDegSS[j];
-        return true;
+        return ReturnValue_ok;
     }
 
     *acc = 0.0;
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefAccelerations(double* accs)
+yarp::dev::ReturnValue CiA402MotionControl::getTrajAccelerations(double* accs)
 {
     if (accs == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     for (size_t j = 0; j < m_impl->numAxes; ++j)
@@ -3572,19 +3568,19 @@ bool CiA402MotionControl::getRefAccelerations(double* accs)
             accs[j] = 0.0;
         }
     }
-    return true;
+    return ReturnValue_ok;
 }
 
 // stop() semantics:
 //  • PP → set CW bit 8 (HALT), decelerating with 0x6084.
 //  • CSV/others → zero TargetVelocity (current behavior kept).
 
-bool CiA402MotionControl::stop(int j)
+yarp::dev::ReturnValue CiA402MotionControl::stop(int j)
 {
     if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: stop: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     int controlMode = -1;
@@ -3597,7 +3593,7 @@ bool CiA402MotionControl::stop(int j)
     {
         std::lock_guard<std::mutex> lock(m_impl->ppState.mutex);
         m_impl->ppState.ppHaltRequested[j] = true; // consumed in setSetPoints()
-        return true;
+        return ReturnValue_ok;
     }
 
     // CSV/others → zero velocity set-point
@@ -3606,10 +3602,10 @@ bool CiA402MotionControl::stop(int j)
         m_impl->setPoints.jointVelocities[j] = 0.0;
         m_impl->setPoints.hasVelSP[j] = true;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::stop()
+yarp::dev::ReturnValue CiA402MotionControl::stop()
 {
     // PP axes → HALT; non-PP axes → velocity 0
     {
@@ -3630,20 +3626,20 @@ bool CiA402MotionControl::stop()
                   0.0);
         std::fill(m_impl->setPoints.hasVelSP.begin(), m_impl->setPoints.hasVelSP.end(), true);
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::velocityMove(const int n_joint, const int* joints, const double* spds)
+yarp::dev::ReturnValue CiA402MotionControl::velocityMove(const int n_joint, const int* joints, const double* spds)
 {
     if (spds == nullptr || joints == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (n_joint <= 0)
     {
         yCError(CIA402, "%s: invalid number of joints %d", Impl::kClassName.data(), n_joint);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // check that all the joints are in VELOCITY mode
@@ -3654,7 +3650,7 @@ bool CiA402MotionControl::velocityMove(const int n_joint, const int* joints, con
             if (joints[k] >= static_cast<int>(m_impl->numAxes))
             {
                 yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joints[k]);
-                return false;
+                return ReturnValue_error_generic;
             }
             if (m_impl->controlModeState.active[joints[k]] != VOCAB_CM_VELOCITY)
             {
@@ -3663,7 +3659,7 @@ bool CiA402MotionControl::velocityMove(const int n_joint, const int* joints, con
                         "%d",
                         Impl::kClassName.data(),
                         joints[k]);
-                return false; // reject
+                return ReturnValue_error_generic; // reject
             }
         }
     }
@@ -3675,51 +3671,52 @@ bool CiA402MotionControl::velocityMove(const int n_joint, const int* joints, con
         m_impl->setPoints.hasVelSP[joints[k]] = true;
     }
 
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefAccelerations(const int n_joint,
+yarp::dev::ReturnValue CiA402MotionControl::setTrajAccelerations(const int n_joint,
                                               const int* joints,
                                               const double* accs)
 {
     if (accs == nullptr || joints == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (n_joint <= 0)
     {
-        yCError(CIA402, "%s: invalid number of joints %d", Impl::kClassName.data(), n_joint);
-        return false;
+        yCError(CIA402, "%s: setTrajAccelerations: invalid number of joints %d", Impl::kClassName.data(), n_joint);
+        return ReturnValue_error_generic;
     }
 
     // no operation
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefAccelerations(const int n_joint, const int* joints, double* accs)
+yarp::dev::ReturnValue CiA402MotionControl::getTrajAccelerations(const int n_joint, const int* joints, double* accs)
 {
     if (accs == nullptr || joints == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     std::memset(accs, 0, n_joint * sizeof(double)); // CiA-402 does not support acceleration
                                                     // setpoints, so we return 0.0 for all axes
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::stop(const int n_joint, const int* joints)
+
+yarp::dev::ReturnValue CiA402MotionControl::stop(const int n_joint, const int* joints)
 {
     if (joints == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (n_joint <= 0)
     {
-        yCError(CIA402, "%s: invalid number of joints %d", Impl::kClassName.data(), n_joint);
-        return false;
+        yCError(CIA402, "%s: stop method: invalid number of joints %d", Impl::kClassName.data(), n_joint);
+        return ReturnValue_error_generic;
     }
 
     {
@@ -3729,21 +3726,21 @@ bool CiA402MotionControl::stop(const int n_joint, const int* joints)
             if (joints[k] >= static_cast<int>(m_impl->numAxes))
             {
                 yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joints[k]);
-                return false;
+                return ReturnValue_error_generic;
             }
             m_impl->setPoints.jointVelocities[joints[k]] = 0.0;
             m_impl->setPoints.hasVelSP[joints[k]] = true;
         }
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getLastJointFault(int j, int& fault, std::string& message)
+yarp::dev::ReturnValue CiA402MotionControl::getLastJointFault(int j, int& fault, std::string& message)
 {
     if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: getLastJointFault: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     const int slave = m_impl->firstSlave + j;
@@ -3757,7 +3754,7 @@ bool CiA402MotionControl::getLastJointFault(int j, int& fault, std::string& mess
                 "%s: getLastJointFault: SDO read 0x603F:00 failed (joint %d)",
                 Impl::kClassName.data(),
                 j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     fault = static_cast<int>(code);
@@ -3808,15 +3805,15 @@ bool CiA402MotionControl::getLastJointFault(int j, int& fault, std::string& mess
             }
         }
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::positionMove(int j, double refDeg)
+yarp::dev::ReturnValue CiA402MotionControl::positionMove(int j, double refDeg)
 {
     if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: positionMove: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
     // accept only if PP is ACTIVE (same policy as your CSV path)
     int controlMode = -1;
@@ -3831,7 +3828,7 @@ bool CiA402MotionControl::positionMove(int j, double refDeg)
                 "%s: positionMove rejected: POSITION mode not active for joint %d",
                 Impl::kClassName.data(),
                 j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
@@ -3840,15 +3837,15 @@ bool CiA402MotionControl::positionMove(int j, double refDeg)
     m_impl->setPoints.ppIsRelative[j] = false;
     m_impl->setPoints.ppHasPosSP[j] = true;
     m_impl->setPoints.ppPulseHi[j] = true; // schedule rising edge on CW bit4
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::positionMove(const double* refsDeg)
+yarp::dev::ReturnValue CiA402MotionControl::positionMove(const double* refsDeg)
 {
     if (!refsDeg)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // all axes must be in PP
@@ -3861,7 +3858,7 @@ bool CiA402MotionControl::positionMove(const double* refsDeg)
                         "%s: positionMove rejected: POSITION mode not active on joint %zu",
                         Impl::kClassName.data(),
                         j);
-                return false;
+                return ReturnValue_error_generic;
             }
     }
 
@@ -3874,29 +3871,29 @@ bool CiA402MotionControl::positionMove(const double* refsDeg)
         m_impl->setPoints.ppHasPosSP[j] = true;
         m_impl->setPoints.ppPulseHi[j] = true;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::positionMove(const int n, const int* joints, const double* refsDeg)
+yarp::dev::ReturnValue CiA402MotionControl::positionMove(const int n, const int* joints, const double* refsDeg)
 {
     if (!joints || !refsDeg || n <= 0)
     {
         yCError(CIA402, "%s: invalid args", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     {
         std::lock_guard<std::mutex> g(m_impl->controlModeState.mutex);
         for (int k = 0; k < n; ++k)
         {
             if (joints[k] < 0 || joints[k] >= static_cast<int>(m_impl->numAxes))
-                return false;
+                return ReturnValue_error_generic;
             if (m_impl->controlModeState.active[joints[k]] != VOCAB_CM_POSITION)
             {
                 yCError(CIA402,
-                        "%s: positionMove rejected: POSITION mode not active on joint %d",
+                        "%s: positionMove rejected: POSITION mode not active for joint %d",
                         Impl::kClassName.data(),
                         joints[k]);
-                return false;
+                return ReturnValue_error_generic;
             }
         }
     }
@@ -3910,13 +3907,13 @@ bool CiA402MotionControl::positionMove(const int n, const int* joints, const dou
         m_impl->setPoints.ppHasPosSP[j] = true;
         m_impl->setPoints.ppPulseHi[j] = true;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::relativeMove(int j, double deltaDeg)
+yarp::dev::ReturnValue CiA402MotionControl::relativeMove(int j, double deltaDeg)
 {
     if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
-        return false;
+        return ReturnValue_error_generic;
     {
         std::lock_guard<std::mutex> g(m_impl->controlModeState.mutex);
         if (m_impl->controlModeState.active[j] != VOCAB_CM_POSITION)
@@ -3925,7 +3922,7 @@ bool CiA402MotionControl::relativeMove(int j, double deltaDeg)
                     "%s: relativeMove rejected: POSITION mode not active for joint %d",
                     Impl::kClassName.data(),
                     j);
-            return true;
+            return ReturnValue_ok;
         }
     }
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
@@ -3934,18 +3931,18 @@ bool CiA402MotionControl::relativeMove(int j, double deltaDeg)
     m_impl->setPoints.ppIsRelative[j] = true;
     m_impl->setPoints.ppHasPosSP[j] = true;
     m_impl->setPoints.ppPulseHi[j] = true;
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::relativeMove(const double* deltasDeg)
+yarp::dev::ReturnValue CiA402MotionControl::relativeMove(const double* deltasDeg)
 {
     if (!deltasDeg)
-        return false;
+        return ReturnValue_error_generic;
     {
         std::lock_guard<std::mutex> g(m_impl->controlModeState.mutex);
         for (size_t j = 0; j < m_impl->numAxes; ++j)
             if (m_impl->controlModeState.active[j] != VOCAB_CM_POSITION)
-                return false;
+                return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     for (size_t j = 0; j < m_impl->numAxes; ++j)
@@ -3956,18 +3953,18 @@ bool CiA402MotionControl::relativeMove(const double* deltasDeg)
         m_impl->setPoints.ppHasPosSP[j] = true;
         m_impl->setPoints.ppPulseHi[j] = true;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::relativeMove(const int n, const int* joints, const double* deltasDeg)
+yarp::dev::ReturnValue CiA402MotionControl::relativeMove(const int n, const int* joints, const double* deltasDeg)
 {
     if (!joints || !deltasDeg || n <= 0)
-        return false;
+        return ReturnValue_error_generic;
     {
         std::lock_guard<std::mutex> g(m_impl->controlModeState.mutex);
         for (int k = 0; k < n; ++k)
             if (m_impl->controlModeState.active[joints[k]] != VOCAB_CM_POSITION)
-                return false;
+                return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     for (int k = 0; k < n; ++k)
@@ -3980,34 +3977,34 @@ bool CiA402MotionControl::relativeMove(const int n, const int* joints, const dou
         m_impl->setPoints.ppHasPosSP[j] = true;
         m_impl->setPoints.ppPulseHi[j] = true;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::checkMotionDone(int j, bool* flag)
+yarp::dev::ReturnValue CiA402MotionControl::checkMotionDone(int j, bool* flag)
 {
     if (flag == nullptr)
     {
         yCError(CIA402, "%s: checkMotionDone: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: checkMotionDone: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
     *flag = m_impl->variables.targetReached[j];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::checkMotionDone(bool* flag)
+yarp::dev::ReturnValue CiA402MotionControl::checkMotionDone(bool* flag)
 {
     if (flag == nullptr)
     {
         yCError(CIA402, "%s: checkMotionDone: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
@@ -4016,13 +4013,13 @@ bool CiA402MotionControl::checkMotionDone(bool* flag)
         flag[j] = m_impl->variables.targetReached[j];
     }
 
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::checkMotionDone(const int n, const int* joints, bool* flag)
+yarp::dev::ReturnValue CiA402MotionControl::checkMotionDone(const int n, const int* joints, bool* flag)
 {
     if (!joints || !flag || n <= 0)
-        return false;
+        return ReturnValue_error_generic;
     bool all = true;
     for (int k = 0; k < n; ++k)
     {
@@ -4031,15 +4028,15 @@ bool CiA402MotionControl::checkMotionDone(const int n, const int* joints, bool* 
         all = all && f;
     }
     *flag = all;
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefSpeed(int j, double spDegS)
+yarp::dev::ReturnValue CiA402MotionControl::setTrajSpeed(int j, double spDegS)
 {
     if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
-        yCError(CIA402, "%s: setRefSpeed: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        yCError(CIA402, "%s: setTrajSpeed: joint %d out of range", Impl::kClassName.data(), j);
+        return ReturnValue_error_generic;
     }
 
     // Only write SDO if PP is active (current behavior)
@@ -4051,13 +4048,13 @@ bool CiA402MotionControl::setRefSpeed(int j, double spDegS)
     if (cm != VOCAB_CM_POSITION)
     {
         yCError(CIA402,
-                "%s: setRefSpeed: POSITION mode not active for joint %d, not writing SDO",
+                "%s: setTrajSpeed: POSITION mode not active for joint %d, not writing SDO",
                 Impl::kClassName.data(),
                 j);
-        return true;
+        return ReturnValue_ok;
     }
 
-    // Cache for getRefSpeed()
+    // Cache for getTrajSpeed()
     {
         std::lock_guard<std::mutex> lock(m_impl->ppState.mutex);
         m_impl->ppState.ppRefSpeedDegS[j] = spDegS;
@@ -4065,126 +4062,134 @@ bool CiA402MotionControl::setRefSpeed(int j, double spDegS)
 
     m_impl->setSDORefSpeed(j, spDegS);
 
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefSpeeds(const double* spDegS)
+yarp::dev::ReturnValue CiA402MotionControl::setTrajSpeeds(const double* spDegS)
 {
     if (spDegS == nullptr)
     {
-        yCError(CIA402, "%s: setRefSpeeds: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: setTrajSpeeds: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     for (size_t j = 0; j < m_impl->numAxes; ++j)
     {
-        this->setRefSpeed(static_cast<int>(j), spDegS[j]);
+        this->setTrajSpeed(static_cast<int>(j), spDegS[j]);
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefSpeeds(const int n, const int* joints, const double* spDegS)
+yarp::dev::ReturnValue CiA402MotionControl::setTrajSpeeds(const int n, const int* joints, const double* spDegS)
 {
     if (!joints || !spDegS || n <= 0)
     {
-        yCError(CIA402, "%s: setRefSpeeds: invalid args", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: setTrajSpeeds: invalid args", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
 
     for (int k = 0; k < n; ++k)
     {
-        this->setRefSpeed(joints[k], spDegS[k]);
+        this->setTrajSpeed(joints[k], spDegS[k]);
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefSpeed(int j, double* ref)
+yarp::dev::ReturnValue CiA402MotionControl::getTrajSpeed(int j, double* ref)
 {
     if (!ref || j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
-        yCError(CIA402, "%s: getRefSpeed: invalid args", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: getTrajSpeed: invalid args", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->ppState.mutex);
     *ref = m_impl->ppState.ppRefSpeedDegS[j];
-    return true;
+    return ReturnValue_ok;
 }
-bool CiA402MotionControl::getRefSpeeds(double* spds)
+yarp::dev::ReturnValue CiA402MotionControl::getTrajSpeeds(double* spds)
 {
     if (!spds)
     {
-        yCError(CIA402, "%s: getRefSpeeds: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: getTrajSpeeds: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->ppState.mutex);
     std::memcpy(spds, m_impl->ppState.ppRefSpeedDegS.data(), m_impl->numAxes * sizeof(double));
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefSpeeds(const int n, const int* joints, double* spds)
+yarp::dev::ReturnValue CiA402MotionControl::getTrajSpeeds(const int n, const int* joints, double* spds)
 {
     if (!joints || !spds || n <= 0)
     {
-        yCError(CIA402, "%s: getRefSpeeds: invalid args", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: getTrajSpeeds: invalid args", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->ppState.mutex);
     for (int k = 0; k < n; ++k)
     {
         spds[k] = m_impl->ppState.ppRefSpeedDegS[joints[k]];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTargetPosition(const int j, double* ref)
+yarp::dev::ReturnValue CiA402MotionControl::getTargetPosition(const int j, double* ref)
 {
     if (!ref || j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: getTargetPosition: invalid args", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     *ref = m_impl->setPoints.ppJointTargetsDeg[j];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTargetPositions(double* refs)
+yarp::dev::ReturnValue CiA402MotionControl::getTargetPositions(double* refs)
 {
     if (refs == nullptr)
     {
         yCError(CIA402, "%s: getTargetPositions: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     std::memcpy(refs, m_impl->setPoints.ppJointTargetsDeg.data(), m_impl->numAxes * sizeof(double));
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTargetPositions(const int n, const int* joints, double* refs)
+yarp::dev::ReturnValue CiA402MotionControl::getTargetPositions(const int n, const int* joints, double* refs)
 {
     if (!joints || !refs || n <= 0)
     {
-        yCError(CIA402, "%s: getTargetPositions: invalid args", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: getTargetPositions: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     for (int k = 0; k < n; ++k)
     {
+        if (joints[k] < 0 || joints[k] >= static_cast<int>(m_impl->numAxes))
+        {
+            yCError(CIA402,
+                    "%s: getTargetPositions: joint %d out of range",
+                    Impl::kClassName.data(),
+                    joints[k]);
+            return ReturnValue_error_generic;
+        }
         refs[k] = m_impl->setPoints.ppJointTargetsDeg[joints[k]];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
 // ---------------- IPositionDirect --------------
 
-bool CiA402MotionControl::setPosition(int j, double refDeg)
+yarp::dev::ReturnValue CiA402MotionControl::setPosition(int j, double refDeg)
 {
     if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: setPosition: joint %d out of range", Impl::kClassName.data(), j);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
@@ -4195,7 +4200,7 @@ bool CiA402MotionControl::setPosition(int j, double refDeg)
                     "%s: setPosition rejected: POSITION_DIRECT mode is not active for joint %d",
                     Impl::kClassName.data(),
                     j);
-            return false;
+            return ReturnValue_error_generic;
         }
     }
 
@@ -4203,15 +4208,15 @@ bool CiA402MotionControl::setPosition(int j, double refDeg)
     m_impl->setPoints.positionDirectJointTargetsDeg[j] = refDeg;
     m_impl->setPoints.positionDirectTargetCounts[j]
         = m_impl->jointDegToTargetCounts(static_cast<size_t>(j), refDeg);
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setPositions(const double* refs)
+yarp::dev::ReturnValue CiA402MotionControl::setPositions(const double* refs)
 {
     if (refs == nullptr)
     {
         yCError(CIA402, "%s: setPositions: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
@@ -4225,7 +4230,7 @@ bool CiA402MotionControl::setPositions(const double* refs)
                         "%zu",
                         Impl::kClassName.data(),
                         j);
-                return false;
+                return ReturnValue_error_generic;
             }
         }
     }
@@ -4237,15 +4242,15 @@ bool CiA402MotionControl::setPositions(const double* refs)
         m_impl->setPoints.positionDirectTargetCounts[j]
             = m_impl->jointDegToTargetCounts(j, refs[j]);
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setPositions(const int n_joint, const int* joints, const double* refs)
+yarp::dev::ReturnValue CiA402MotionControl::setPositions(const int n_joint, const int* joints, const double* refs)
 {
     if (!joints || !refs)
     {
         yCError(CIA402, "%s: setPositions: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (n_joint <= 0)
     {
@@ -4253,7 +4258,7 @@ bool CiA402MotionControl::setPositions(const int n_joint, const int* joints, con
                 "%s: setPositions: invalid number of joints %d",
                 Impl::kClassName.data(),
                 n_joint);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
@@ -4266,7 +4271,7 @@ bool CiA402MotionControl::setPositions(const int n_joint, const int* joints, con
                         "%s: setPositions: joint %d out of range",
                         Impl::kClassName.data(),
                         joints[k]);
-                return false;
+                return ReturnValue_error_generic;
             }
             if (m_impl->controlModeState.active[joints[k]] != VOCAB_CM_POSITION_DIRECT)
             {
@@ -4275,7 +4280,7 @@ bool CiA402MotionControl::setPositions(const int n_joint, const int* joints, con
                         "%d",
                         Impl::kClassName.data(),
                         joints[k]);
-                return false;
+                return ReturnValue_error_generic;
             }
         }
     }
@@ -4288,48 +4293,48 @@ bool CiA402MotionControl::setPositions(const int n_joint, const int* joints, con
         m_impl->setPoints.positionDirectTargetCounts[j]
             = m_impl->jointDegToTargetCounts(static_cast<size_t>(j), refs[k]);
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefPosition(const int joint, double* ref)
+yarp::dev::ReturnValue CiA402MotionControl::getRefPosition(const int joint, double* ref)
 {
     if (!ref)
     {
         yCError(CIA402, "%s: getRefPosition: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (joint < 0 || joint >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: getRefPosition: joint %d out of range", Impl::kClassName.data(), joint);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     *ref = m_impl->setPoints.positionDirectJointTargetsDeg[joint];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefPositions(double* refs)
+yarp::dev::ReturnValue CiA402MotionControl::getRefPositions(double* refs)
 {
     if (!refs)
     {
         yCError(CIA402, "%s: getRefPositions: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     std::memcpy(refs,
                 m_impl->setPoints.positionDirectJointTargetsDeg.data(),
                 m_impl->numAxes * sizeof(double));
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefPositions(const int n_joint, const int* joints, double* refs)
+yarp::dev::ReturnValue CiA402MotionControl::getRefPositions(const int n_joint, const int* joints, double* refs)
 {
     if (!joints || !refs)
     {
         yCError(CIA402, "%s: getRefPositions: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (n_joint <= 0)
     {
@@ -4337,7 +4342,7 @@ bool CiA402MotionControl::getRefPositions(const int n_joint, const int* joints, 
                 "%s: getRefPositions: invalid number of joints %d",
                 Impl::kClassName.data(),
                 n_joint);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
@@ -4349,147 +4354,147 @@ bool CiA402MotionControl::getRefPositions(const int n_joint, const int* joints, 
                     "%s: getRefPositions: joint %d out of range",
                     Impl::kClassName.data(),
                     joints[k]);
-            return false;
+            return ReturnValue_error_generic;
         }
         refs[k] = m_impl->setPoints.positionDirectJointTargetsDeg[joints[k]];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getNumberOfMotors(int* num)
+yarp::dev::ReturnValue CiA402MotionControl::getNumberOfMotors(int* num)
 {
     if (!num)
     {
         yCError(CIA402, "%s: getNumberOfMotors: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     *num = m_impl->numAxes;
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTemperature(int m, double* val)
+yarp::dev::ReturnValue CiA402MotionControl::getTemperature(int m, double* val)
 {
     if (val == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m < 0 || m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: motor %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
     *val = m_impl->variables.driveTemperatures[m];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTemperatures(double* vals)
+yarp::dev::ReturnValue CiA402MotionControl::getTemperatures(double* vals)
 {
     if (vals == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
     std::memcpy(vals, m_impl->variables.driveTemperatures.data(), m_impl->numAxes * sizeof(double));
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getTemperatureLimit(int m, double* temp)
+yarp::dev::ReturnValue CiA402MotionControl::getTemperatureLimit(int m, double* temp)
 {
     // The get temperature limit function is not implemented
     yCError(CIA402,
             "%s: The getTemperatureLimit function is not implemented",
             Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::setTemperatureLimit(int m, const double temp)
+yarp::dev::ReturnValue CiA402MotionControl::setTemperatureLimit(int m, const double temp)
 {
     // The set temperature limit function is not implemented
     yCError(CIA402,
             "%s: The setTemperatureLimit function is not implemented",
             Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::getGearboxRatio(int m, double* val)
+yarp::dev::ReturnValue CiA402MotionControl::getGearboxRatio(int m, double* val)
 {
     if (val == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m < 0 || m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: motor %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
     *val = m_impl->gearRatio[m];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setGearboxRatio(int m, const double val)
+yarp::dev::ReturnValue CiA402MotionControl::setGearboxRatio(int m, const double val)
 {
     // The setGearboxRatio function is not implemented
     yCError(CIA402, "%s: The setGearboxRatio function is not implemented", Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::getCurrent(int m, double* curr)
+yarp::dev::ReturnValue CiA402MotionControl::getCurrent(int m, double* curr)
 {
     if (curr == nullptr)
     {
         yCError(CIA402, "%s: getCurrent: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m < 0 || m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: getCurrent: motor %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
     *curr = m_impl->variables.motorCurrents[m];
-    return true;
+    return ReturnValue_ok;
 };
 
-bool CiA402MotionControl::getCurrents(double* currs)
+yarp::dev::ReturnValue CiA402MotionControl::getCurrents(double* currs)
 {
     if (currs == nullptr)
     {
-        yCError(CIA402, "%s: getCurrents: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
     std::memcpy(currs, m_impl->variables.motorCurrents.data(), m_impl->numAxes * sizeof(double));
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getCurrentRange(int m, double* min, double* max)
+yarp::dev::ReturnValue CiA402MotionControl::getCurrentRange(int m, double* min, double* max)
 {
     if (min == nullptr || max == nullptr)
     {
         yCError(CIA402, "%s: getCurrentRange: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     if (m < 0 || m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: getCurrentRange: motor %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
     *min = -m_impl->maxCurrentsA[m];
     *max = m_impl->maxCurrentsA[m];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getCurrentRanges(double* min, double* max)
+yarp::dev::ReturnValue CiA402MotionControl::getCurrentRanges(double* min, double* max)
 {
     if (min == nullptr || max == nullptr)
     {
         yCError(CIA402, "%s: getCurrentRanges: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
     std::lock_guard<std::mutex> lock(m_impl->variables.mutex);
     for (size_t m = 0; m < m_impl->numAxes; ++m)
@@ -4497,15 +4502,15 @@ bool CiA402MotionControl::getCurrentRanges(double* min, double* max)
         min[m] = -m_impl->maxCurrentsA[m];
         max[m] = m_impl->maxCurrentsA[m];
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefCurrents(const double* currs)
+yarp::dev::ReturnValue CiA402MotionControl::setRefCurrents(const double* currs)
 {
     if (currs == nullptr)
     {
         yCError(CIA402, "%s: setRefCurrents: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
@@ -4520,7 +4525,7 @@ bool CiA402MotionControl::setRefCurrents(const double* currs)
                         "%zu",
                         Impl::kClassName.data(),
                         j);
-                return false; // reject
+                return ReturnValue_error_generic; // reject
             }
         }
     }
@@ -4528,15 +4533,15 @@ bool CiA402MotionControl::setRefCurrents(const double* currs)
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     std::memcpy(m_impl->setPoints.motorCurrents.data(), currs, m_impl->numAxes * sizeof(double));
     std::fill(m_impl->setPoints.hasCurrentSP.begin(), m_impl->setPoints.hasCurrentSP.end(), true);
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefCurrent(int m, double curr)
+yarp::dev::ReturnValue CiA402MotionControl::setRefCurrent(int m, double curr)
 {
     if (m < 0 || m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: setRefCurrent: motor %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // (a/b) Only accept if CURRENT is ACTIVE; otherwise reject (not considered)
@@ -4548,7 +4553,7 @@ bool CiA402MotionControl::setRefCurrent(int m, double curr)
                     "%s: setRefCurrent rejected: CURRENT mode is not active for the joint %d",
                     Impl::kClassName.data(),
                     m);
-            return false;
+            return ReturnValue_error_generic;
         }
     }
 
@@ -4556,23 +4561,20 @@ bool CiA402MotionControl::setRefCurrent(int m, double curr)
     m_impl->setPoints.motorCurrents[m] = curr;
     m_impl->setPoints.hasCurrentSP[m] = true; // (b)
 
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setRefCurrents(const int n_motor, const int* motors, const double* currs)
+yarp::dev::ReturnValue CiA402MotionControl::setRefCurrents(const int n_motor, const int* motors, const double* currs)
 {
     if (currs == nullptr || motors == nullptr)
     {
-        yCError(CIA402, "%s: setRefCurrents: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     if (n_motor <= 0)
     {
-        yCError(CIA402,
-                "%s: setRefCurrents: invalid number of motors %d",
-                Impl::kClassName.data(),
-                n_motor);
-        return false;
+        yCError(CIA402, "%s: setRefCurrents: invalid number of motors %d", Impl::kClassName.data(), n_motor);
+        return ReturnValue_error_generic;
     }
     for (int k = 0; k < n_motor; ++k)
     {
@@ -4582,7 +4584,7 @@ bool CiA402MotionControl::setRefCurrents(const int n_motor, const int* motors, c
                     "%s: setRefCurrents: motor %d out of range",
                     Impl::kClassName.data(),
                     motors[k]);
-            return false;
+            return ReturnValue_error_generic;
         }
     }
 
@@ -4597,7 +4599,7 @@ bool CiA402MotionControl::setRefCurrents(const int n_motor, const int* motors, c
                         "%s: setRefCurrents rejected: CURRENT mode is not active for the joint %d",
                         Impl::kClassName.data(),
                         motors[k]);
-                return false; // reject
+                return ReturnValue_error_generic; // reject
             }
         }
     }
@@ -4608,46 +4610,46 @@ bool CiA402MotionControl::setRefCurrents(const int n_motor, const int* motors, c
         m_impl->setPoints.motorCurrents[motors[k]] = currs[k];
         m_impl->setPoints.hasCurrentSP[motors[k]] = true;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefCurrents(double* currs)
+yarp::dev::ReturnValue CiA402MotionControl::getRefCurrents(double* currs)
 {
     if (currs == nullptr)
     {
-        yCError(CIA402, "%s: getRefCurrents: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     std::memcpy(currs, m_impl->setPoints.motorCurrents.data(), m_impl->numAxes * sizeof(double));
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getRefCurrent(int m, double* curr)
+yarp::dev::ReturnValue CiA402MotionControl::getRefCurrent(int m, double* curr)
 {
     if (curr == nullptr)
     {
-        yCError(CIA402, "%s: getRefCurrent: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     if (m < 0 || m >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: getRefCurrent: motor %d out of range", Impl::kClassName.data(), m);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->setPoints.mutex);
     *curr = m_impl->setPoints.motorCurrents[m];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setLimits(int axis, double min, double max)
+yarp::dev::ReturnValue CiA402MotionControl::setPosLimits(int axis, double min, double max)
 {
     if (axis < 0 || axis >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: setLimits: axis %d out of range", Impl::kClassName.data(), axis);
-        return false;
+        return ReturnValue_error_generic;
     }
     // If both bounds are provided (non-negative), enforce min < max.
     // When either bound is negative, we treat that side as disabled like in open(),
@@ -4659,7 +4661,7 @@ bool CiA402MotionControl::setLimits(int axis, double min, double max)
                 Impl::kClassName.data(),
                 min,
                 max);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     {
@@ -4693,64 +4695,64 @@ bool CiA402MotionControl::setLimits(int axis, double min, double max)
         maxCounts = lowerLimitDisabled ? std::numeric_limits<int32_t>::max() : -lowerLimitCounts;
     }
 
-    return m_impl->setPositionCountsLimits(axis, minCounts, maxCounts);
+    return m_impl->setPositionCountsLimits(axis, minCounts, maxCounts) ? ReturnValue_ok : ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::getLimits(int axis, double* min, double* max)
+yarp::dev::ReturnValue CiA402MotionControl::getPosLimits(int axis, double* min, double* max)
 {
     if (min == nullptr || max == nullptr)
     {
-        yCError(CIA402, "%s: getLimits: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: getPosLimits: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
     if (axis < 0 || axis >= static_cast<int>(m_impl->numAxes))
     {
-        yCError(CIA402, "%s: getLimits: axis %d out of range", Impl::kClassName.data(), axis);
-        return false;
+        yCError(CIA402, "%s: getPosLimits: axis %d out of range", Impl::kClassName.data(), axis);
+        return ReturnValue_error_generic;
     }
 
     std::lock_guard<std::mutex> lock(m_impl->limits.mutex);
     *min = m_impl->limits.minPositionLimitDeg[axis];
     *max = m_impl->limits.maxPositionLimitDeg[axis];
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setVelLimits(int axis, double min, double max)
+yarp::dev::ReturnValue CiA402MotionControl::setVelLimits(int axis, double min, double max)
 {
     // not implemented yet
     constexpr auto logPrefix = "[setVelLimits] ";
     yCError(CIA402, "%s: The setVelLimits function is not implemented", logPrefix);
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::getVelLimits(int axis, double* min, double* max)
+yarp::dev::ReturnValue CiA402MotionControl::getVelLimits(int axis, double* min, double* max)
 {
     // not implemented yet
     constexpr auto logPrefix = "[getVelLimits] ";
     yCError(CIA402, "%s: The getVelLimits function is not implemented", logPrefix);
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::getInteractionMode(int axis, yarp::dev::InteractionModeEnum* mode)
+yarp::dev::ReturnValue CiA402MotionControl::getInteractionMode(int axis, yarp::dev::InteractionModeEnum* mode)
 {
     if (!mode)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     *mode = m_impl->dummyInteractionMode;
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getInteractionModes(int n_joints,
+yarp::dev::ReturnValue CiA402MotionControl::getInteractionModes(int n_joints,
                                               int* joints,
                                               yarp::dev::InteractionModeEnum* modes)
 {
     if (!joints || !modes || n_joints <= 0)
     {
         yCError(CIA402, "%s: invalid args", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     for (int k = 0; k < n_joints; ++k)
@@ -4758,51 +4760,51 @@ bool CiA402MotionControl::getInteractionModes(int n_joints,
         if (joints[k] < 0 || joints[k] >= static_cast<int>(m_impl->numAxes))
         {
             yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joints[k]);
-            return false;
+            return ReturnValue_error_generic;
         }
         modes[k] = m_impl->dummyInteractionMode;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::getInteractionModes(yarp::dev::InteractionModeEnum* modes)
+yarp::dev::ReturnValue CiA402MotionControl::getInteractionModes(yarp::dev::InteractionModeEnum* modes)
 {
     if (modes == nullptr)
     {
-        yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        yCError(CIA402, "%s: getInteractionModes: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
     }
 
     for (size_t j = 0; j < m_impl->numAxes; ++j)
     {
         modes[j] = m_impl->dummyInteractionMode;
     }
-    return true;
+    return ReturnValue_ok;
 }
 
-bool CiA402MotionControl::setInteractionMode(int axis, yarp::dev::InteractionModeEnum mode)
+yarp::dev::ReturnValue CiA402MotionControl::setInteractionMode(int axis, yarp::dev::InteractionModeEnum mode)
 {
     if (axis < 0 || axis >= static_cast<int>(m_impl->numAxes))
     {
         yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), axis);
-        return false;
+        return ReturnValue_error_generic;
     }
 
     // The interaction mode is not implemented in this driver.
     yCError(CIA402,
             "%s: The setInteractionMode function is not implemented",
             Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::setInteractionModes(int n_joints,
+yarp::dev::ReturnValue CiA402MotionControl::setInteractionModes(int n_joints,
                                               int* joints,
                                               yarp::dev::InteractionModeEnum* modes)
 {
     if (!joints || !modes || n_joints <= 0)
     {
         yCError(CIA402, "%s: invalid args", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     for (int k = 0; k < n_joints; ++k)
@@ -4810,7 +4812,7 @@ bool CiA402MotionControl::setInteractionModes(int n_joints,
         if (joints[k] < 0 || joints[k] >= static_cast<int>(m_impl->numAxes))
         {
             yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), joints[k]);
-            return false;
+            return ReturnValue_error_generic;
         }
     }
 
@@ -4818,21 +4820,64 @@ bool CiA402MotionControl::setInteractionModes(int n_joints,
     yCError(CIA402,
             "%s: The setInteractionModes function is not implemented",
             Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
-bool CiA402MotionControl::setInteractionModes(yarp::dev::InteractionModeEnum* modes)
+yarp::dev::ReturnValue CiA402MotionControl::setInteractionModes(yarp::dev::InteractionModeEnum* modes)
 {
     if (modes == nullptr)
     {
         yCError(CIA402, "%s: null pointer", Impl::kClassName.data());
-        return false;
+        return ReturnValue_error_generic;
     }
 
     yCError(CIA402,
             "%s: The setInteractionModes function is not implemented",
             Impl::kClassName.data());
-    return false;
+    return ReturnValue_error_generic;
 }
 
+yarp::dev::ReturnValue CiA402MotionControl::getMotorTorqueParams(int j, yarp::dev::MotorTorqueParameters* params)
+{
+/*  COPILOT EXAMPLE:
+    if (params == nullptr)
+    {
+        yCError(CIA402, "%s: getMotorTorqueParams: null pointer", Impl::kClassName.data());
+        return ReturnValue_error_generic;
+    }
+    if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
+    {
+        yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
+        return ReturnValue_error_generic;
+    }
+
+    // Populate the motor torque parameters structure
+    // ktau is the torque constant in Nm/A
+    params->ktau = m_impl->torqueConstants[j];
+    params->ktau_scale = 1.0; // Scale factor for ktau (unity in our case)
+    params->bemf = 0.0; // Back-EMF constant (not directly available)
+    params->bemf_scale = 1.0; // Scale factor for bemf
+
+    return ReturnValue_ok;
+    */
+    return ReturnValue_error_not_implemented_by_device;
+}
+
+yarp::dev::ReturnValue CiA402MotionControl::setMotorTorqueParams(int j, const yarp::dev::MotorTorqueParameters params)
+{
+    /* COPILOT EXAMPLE:
+    if (j < 0 || j >= static_cast<int>(m_impl->numAxes))
+    {
+        yCError(CIA402, "%s: joint %d out of range", Impl::kClassName.data(), j);
+        return ReturnValue_error_generic;
+    }
+
+    // Update the torque constant in the implementation
+    // Note: This updates the in-memory value but does not write to the drive's SDO
+    m_impl->torqueConstants[j] = params.ktau;
+
+    return ReturnValue_ok;
+    */
+    return ReturnValue_error_not_implemented_by_device;
+}
 } // namespace yarp::dev
